@@ -3,1100 +3,255 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Кусьбот 🐾</title>
+<title>Кусьбот</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&amp;display=swap">
 <style>
-:root {
-  --bg: #0f0f1a;
-  --card: #1a1a2e;
-  --card-hover: #222240;
-  --accent: #ff6b9d;
-  --accent2: #c44dff;
-  --accent-glow: rgba(255, 107, 157, 0.3);
-  --text: #f0f0f0;
-  --text2: #a0a0b8;
-  --success: #4ecdc4;
-  --danger: #ff6b6b;
-  --spicy: #ff4757;
-  --spicy-glow: rgba(255, 71, 87, 0.3);
-  --radius: 16px;
-}
-* { margin: 0; padding: 0; box-sizing: border-box; }
-body {
-  font-family: 'Nunito', sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  min-height: 100vh;
-  overflow-x: hidden;
-}
-.container { max-width: 420px; margin: 0 auto; padding: 16px; padding-bottom: 100px; }
-
-/* ==================== COMMON ==================== */
-
-/* Lock screen */
-.lock-screen {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: var(--bg);
-  z-index: 1000;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-  text-align: center;
-  padding: 40px;
-}
-.lock-screen.show { display: flex; }
-.lock-icon { font-size: 64px; margin-bottom: 20px; }
-.lock-title { font-size: 22px; font-weight: 800; margin-bottom: 12px; }
-.lock-text { font-size: 14px; color: var(--text2); margin-bottom: 24px; line-height: 1.6; }
-.lock-link {
-  display: inline-block;
-  padding: 14px 28px;
-  background: linear-gradient(135deg, var(--accent), var(--accent2));
-  color: white;
-  border-radius: 12px;
-  font-weight: 800;
-  text-decoration: none;
-  font-size: 16px;
-}
-
-/* Loading */
-.loading { text-align: center; padding: 60px 0; }
-.loading.hidden { display: none; }
-.spinner {
-  width: 48px; height: 48px;
-  border: 4px solid var(--card);
-  border-top-color: var(--accent);
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-  margin: 0 auto 16px;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
-
-/* Header */
-.header { text-align: center; padding: 20px 0 10px; }
-.header .logo { font-size: 48px; animation: bounce 2s ease infinite; }
-.header h1 {
-  font-size: 24px;
-  font-weight: 900;
-  background: linear-gradient(135deg, var(--accent), var(--accent2));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  margin-top: 4px;
-}
-@keyframes bounce {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-8px); }
-}
-
-/* Main button */
-.main-btn {
-  width: 100%;
-  padding: 18px;
-  border: none;
-  border-radius: var(--radius);
-  font-family: 'Nunito', sans-serif;
-  font-size: 18px;
-  font-weight: 900;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-.main-btn:active { transform: scale(0.96); }
-.main-btn.primary {
-  background: linear-gradient(135deg, var(--accent), var(--accent2));
-  color: white;
-  box-shadow: 0 4px 20px var(--accent-glow);
-}
-.main-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-
-/* Back button */
-.back-row { margin-bottom: 16px; }
-.back-btn {
-  background: none;
-  border: none;
-  color: var(--text2);
-  font-family: 'Nunito', sans-serif;
-  font-size: 14px;
-  font-weight: 700;
-  cursor: pointer;
-  padding: 8px 0;
-}
-.back-btn:hover { color: var(--text); }
-
-/* Page */
-.page { display: none; }
-.page.active { display: block; }
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-@keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(12px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-/* ==================== CREATE PAGE ==================== */
-
-.step { display: none; animation: fadeIn 0.3s ease; }
-.step.active { display: block; }
-.step-label {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--text2);
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  margin-bottom: 12px;
-}
-.step-title { font-size: 20px; font-weight: 800; margin-bottom: 16px; }
-
-.name-input-wrap { position: relative; margin-bottom: 16px; }
-.name-input {
-  width: 100%;
-  padding: 16px 20px;
-  background: var(--card);
-  border: 2px solid transparent;
-  border-radius: var(--radius);
-  color: var(--text);
-  font-family: 'Nunito', sans-serif;
-  font-size: 17px;
-  font-weight: 600;
-  outline: none;
-  transition: all 0.3s ease;
-}
-.name-input:focus { border-color: var(--accent); box-shadow: 0 0 20px var(--accent-glow); }
-.name-input::placeholder { color: var(--text2); }
-
-.preview-card {
-  background: var(--card);
-  border-radius: var(--radius);
-  padding: 16px 20px;
-  margin-top: 12px;
-  display: none;
-  animation: fadeIn 0.3s ease;
-}
-.preview-card.show { display: flex; align-items: center; gap: 12px; }
-.preview-avatar {
-  width: 44px; height: 44px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--accent), var(--accent2));
-  display: flex; align-items: center; justify-content: center;
-  font-size: 20px; font-weight: 800;
-  flex-shrink: 0;
-}
-.preview-text { font-size: 14px; color: var(--text2); }
-.preview-text strong { color: var(--text); font-weight: 700; }
-
-.mode-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 8px; }
-.mode-btn {
-  background: var(--card);
-  border: 2px solid transparent;
-  border-radius: var(--radius);
-  padding: 24px 16px;
-  text-align: center;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-.mode-btn:active { transform: scale(0.96); }
-.mode-btn .mode-icon { font-size: 36px; margin-bottom: 8px; }
-.mode-btn .mode-name { font-size: 16px; font-weight: 800; }
-.mode-btn .mode-desc { font-size: 12px; color: var(--text2); margin-top: 4px; }
-.mode-btn.selected-lite {
-  border-color: var(--accent);
-  box-shadow: 0 0 20px var(--accent-glow);
-  background: rgba(255, 107, 157, 0.1);
-}
-.mode-btn.selected-spicy {
-  border-color: var(--spicy);
-  box-shadow: 0 0 20px var(--spicy-glow);
-  background: rgba(255, 71, 87, 0.1);
-}
-
-.parts-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
-.part-btn {
-  background: var(--card);
-  border: 2px solid transparent;
-  border-radius: 12px;
-  padding: 14px 8px;
-  text-align: center;
-  cursor: pointer;
-  font-family: 'Nunito', sans-serif;
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--text);
-  transition: all 0.2s ease;
-}
-.part-btn:active { transform: scale(0.94); }
-.part-btn.selected {
-  border-color: var(--accent);
-  background: rgba(255, 107, 157, 0.15);
-  box-shadow: 0 0 12px var(--accent-glow);
-}
-.part-btn.selected.spicy-mode {
-  border-color: var(--spicy);
-  background: rgba(255, 71, 87, 0.15);
-  box-shadow: 0 0 12px var(--spicy-glow);
-}
-.part-btn .part-emoji { font-size: 22px; margin-bottom: 4px; display: block; }
-
-.random-btn {
-  width: 100%;
-  padding: 14px;
-  background: linear-gradient(135deg, var(--accent), var(--accent2));
-  border: none;
-  border-radius: 12px;
-  color: white;
-  font-family: 'Nunito', sans-serif;
-  font-size: 15px;
-  font-weight: 800;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  margin-bottom: 16px;
-}
-.random-btn:active { transform: scale(0.96); }
-
-/* Cooldown */
-.cooldown-overlay {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(15, 15, 26, 0.95);
-  z-index: 100;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-  text-align: center;
-  padding: 20px;
-}
-.cooldown-overlay.show { display: flex; }
-.cooldown-timer {
-  font-size: 64px;
-  font-weight: 900;
-  background: linear-gradient(135deg, var(--accent), var(--accent2));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-.cooldown-text { font-size: 16px; color: var(--text2); margin-top: 12px; }
-
-/* ==================== BITE PAGE ==================== */
-
-.bite-center {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 80vh;
-  text-align: center;
-}
-.bite-scene { display: none; width: 100%; max-width: 380px; text-align: center; }
-.bite-scene.show { display: block; }
-
-.teeth-container {
-  position: relative;
-  width: 180px;
-  height: 180px;
-  margin: 0 auto 24px;
-}
-.tooth-top, .tooth-bottom {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 80px;
-  line-height: 1;
-}
-.tooth-top { top: 0; animation: biteTop 0.6s ease forwards; }
-.tooth-bottom { bottom: 0; animation: biteBottom 0.6s ease forwards; }
-@keyframes biteTop {
-  0% { top: -40px; opacity: 0; }
-  60% { top: 30px; opacity: 1; }
-  80% { top: 20px; }
-  100% { top: 24px; opacity: 1; }
-}
-@keyframes biteBottom {
-  0% { bottom: -40px; opacity: 0; }
-  60% { bottom: 30px; opacity: 1; }
-  80% { bottom: 20px; }
-  100% { bottom: 24px; opacity: 1; }
-}
-
-.sparkles { position: absolute; inset: 0; pointer-events: none; }
-.sparkle {
-  position: absolute;
-  font-size: 20px;
-  animation: sparkle 1s ease forwards;
-  opacity: 0;
-}
-@keyframes sparkle {
-  0% { opacity: 0; transform: scale(0) rotate(0deg); }
-  50% { opacity: 1; transform: scale(1.2) rotate(180deg); }
-  100% { opacity: 0; transform: scale(0.5) rotate(360deg) translateY(-30px); }
-}
-
-.pulse-ring {
-  position: absolute;
-  top: 50%; left: 50%;
-  width: 120px; height: 120px;
-  margin: -60px 0 0 -60px;
-  border-radius: 50%;
-  border: 3px solid var(--accent);
-  opacity: 0;
-  animation: pulse 1.5s ease 0.5s forwards;
-}
-@keyframes pulse {
-  0% { transform: scale(0.5); opacity: 0.6; }
-  100% { transform: scale(2); opacity: 0; }
-}
-
-.bite-from {
-  font-size: 15px;
-  color: var(--text2);
-  margin-bottom: 8px;
-  animation: fadeInUp 0.5s ease 0.4s both;
-}
-.bite-from strong { color: var(--accent); font-weight: 800; }
-.bite-phrase {
-  font-size: 22px;
-  font-weight: 900;
-  line-height: 1.4;
-  margin-bottom: 8px;
-  animation: fadeInUp 0.5s ease 0.6s both;
-}
-.bite-part {
-  font-size: 14px;
-  color: var(--text2);
-  margin-bottom: 32px;
-  animation: fadeInUp 0.5s ease 0.7s both;
-}
-.bite-part span {
-  display: inline-block;
-  background: var(--card);
-  padding: 4px 14px;
-  border-radius: 20px;
-  font-weight: 700;
-}
-
-.actions {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  animation: fadeInUp 0.5s ease 0.9s both;
-}
-.action-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.action-btn {
-  padding: 14px 16px;
-  border: none;
-  border-radius: 12px;
-  font-family: 'Nunito', sans-serif;
-  font-size: 14px;
-  font-weight: 800;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-.action-btn:active { transform: scale(0.96); }
-.action-btn.reply-random {
-  background: linear-gradient(135deg, var(--accent), var(--accent2));
-  color: white;
-}
-.action-btn.reply-choose {
-  background: var(--card);
-  color: var(--text);
-  border: 2px solid var(--accent);
-}
-.action-btn.block-btn {
-  background: transparent;
-  color: var(--danger);
-  font-size: 13px;
-  font-weight: 700;
-  padding: 10px;
-}
-
-.error-state { display: none; text-align: center; }
-.error-state.show { display: block; }
-.error-emoji { font-size: 48px; margin-bottom: 12px; }
-.error-text { font-size: 16px; color: var(--text2); }
-
-/* ==================== STATS PAGE ==================== */
-
-.counters { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px; }
-.counter-card {
-  background: var(--card);
-  border-radius: var(--radius);
-  padding: 20px 16px;
-  text-align: center;
-}
-.counter-value {
-  font-size: 36px;
-  font-weight: 900;
-  background: linear-gradient(135deg, var(--accent), var(--accent2));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-.counter-label { font-size: 13px; font-weight: 700; color: var(--text2); margin-top: 4px; }
-
-.section { margin-bottom: 24px; animation: fadeIn 0.4s ease both; }
-.section-title {
-  font-size: 16px;
-  font-weight: 800;
-  margin-bottom: 12px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.top-list { background: var(--card); border-radius: var(--radius); overflow: hidden; }
-.top-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 14px 16px;
-  border-bottom: 1px solid rgba(255,255,255,0.05);
-}
-.top-item:last-child { border-bottom: none; }
-.top-rank {
-  width: 28px; height: 28px;
-  border-radius: 50%;
-  background: var(--bg);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 13px; font-weight: 800;
-  flex-shrink: 0;
-}
-.top-rank.gold { background: #ffd700; color: #1a1a2e; }
-.top-rank.silver { background: #c0c0c0; color: #1a1a2e; }
-.top-rank.bronze { background: #cd7f32; color: #fff; }
-.top-name { flex: 1; font-weight: 700; font-size: 15px; }
-.top-count { font-weight: 800; color: var(--accent); font-size: 15px; }
-
-.bar-container { background: var(--card); border-radius: var(--radius); overflow: hidden; }
-.bar-item { padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.05); }
-.bar-item:last-child { border-bottom: none; }
-.bar-label { display: flex; justify-content: space-between; margin-bottom: 6px; }
-.bar-name { font-weight: 700; font-size: 14px; }
-.bar-value { font-weight: 800; color: var(--accent); font-size: 14px; }
-.bar-track { height: 8px; background: var(--bg); border-radius: 4px; overflow: hidden; }
-.bar-fill {
-  height: 100%;
-  border-radius: 4px;
-  background: linear-gradient(90deg, var(--accent), var(--accent2));
-  transition: width 0.8s ease;
-}
-
-.achievements-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.achievement {
-  background: var(--card);
-  border-radius: var(--radius);
-  padding: 16px 12px;
-  text-align: center;
-  opacity: 0.35;
-  transition: all 0.3s ease;
-}
-.achievement.unlocked {
-  opacity: 1;
-  border: 2px solid var(--accent);
-  box-shadow: 0 0 12px var(--accent-glow);
-}
-.achievement-icon { font-size: 28px; margin-bottom: 4px; }
-.achievement-title { font-size: 13px; font-weight: 800; }
-.achievement-desc { font-size: 11px; color: var(--text2); margin-top: 2px; }
-
-.empty-state { text-align: center; padding: 24px; color: var(--text2); font-size: 14px; }
+:root{--bg:#0f0f1a;--card:#1a1a2e;--accent:#ff6b9d;--accent2:#c44dff;--accent-glow:rgba(255,107,157,.3);--text:#f0f0f0;--text2:#a0a0b8;--danger:#ff6b6b;--spicy:#ff4757;--spicy-glow:rgba(255,71,87,.3);--radius:16px}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+.container{max-width:420px;margin:0 auto;padding:16px;padding-bottom:100px}
+.lock-screen{display:none;position:fixed;inset:0;background:var(--bg);z-index:1000;align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:40px}
+.lock-screen.show{display:flex}.lock-icon{font-size:64px;margin-bottom:20px}.lock-title{font-size:22px;font-weight:800;margin-bottom:12px}.lock-text{font-size:14px;color:var(--text2);margin-bottom:24px}
+.lock-link{display:inline-block;padding:14px 28px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border-radius:12px;font-weight:800;text-decoration:none}
+.loading{text-align:center;padding:60px 0}.loading.hidden{display:none}
+.spinner{width:48px;height:48px;border:4px solid var(--card);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 16px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.header{text-align:center;padding:20px 0 10px}.header .logo{font-size:48px;animation:bounce 2s ease infinite}
+.header h1{font-size:24px;font-weight:900;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-top:4px}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.main-btn{width:100%;padding:18px;border:none;border-radius:var(--radius);font-family:'Nunito',sans-serif;font-size:18px;font-weight:900;cursor:pointer;transition:all .3s}
+.main-btn:active{transform:scale(.96)}.main-btn.primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;box-shadow:0 4px 20px var(--accent-glow)}.main-btn:disabled{opacity:.5;cursor:not-allowed}
+.back-row{margin-bottom:16px}.back-btn{background:none;border:none;color:var(--text2);font-family:'Nunito',sans-serif;font-size:14px;font-weight:700;cursor:pointer;padding:8px 0}
+.page{display:none}.page.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeInUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.step{display:none;animation:fadeIn .3s}.step.active{display:block}
+.step-label{font-size:13px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px}
+.step-title{font-size:20px;font-weight:800;margin-bottom:16px}
+.name-input{width:100%;padding:16px 20px;background:var(--card);border:2px solid transparent;border-radius:var(--radius);color:var(--text);font-family:'Nunito',sans-serif;font-size:17px;font-weight:600;outline:none;transition:all .3s;margin-bottom:16px}
+.name-input:focus{border-color:var(--accent);box-shadow:0 0 20px var(--accent-glow)}.name-input::placeholder{color:var(--text2)}
+.preview-card{background:var(--card);border-radius:var(--radius);padding:16px 20px;margin-bottom:12px;display:none;animation:fadeIn .3s}
+.preview-card.show{display:flex;align-items:center;gap:12px}
+.preview-avatar{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;flex-shrink:0}
+.preview-text{font-size:14px;color:var(--text2)}.preview-text strong{color:var(--text);font-weight:700}
+.mode-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:8px}
+.mode-btn{background:var(--card);border:2px solid transparent;border-radius:var(--radius);padding:24px 16px;text-align:center;cursor:pointer;transition:all .3s}
+.mode-btn:active{transform:scale(.96)}.mode-btn .mode-icon{font-size:36px;margin-bottom:8px}.mode-btn .mode-name{font-size:16px;font-weight:800}.mode-btn .mode-desc{font-size:12px;color:var(--text2);margin-top:4px}
+.mode-btn.sel-a{border-color:var(--accent);box-shadow:0 0 20px var(--accent-glow);background:rgba(255,107,157,.1)}
+.mode-btn.sel-b{border-color:var(--spicy);box-shadow:0 0 20px var(--spicy-glow);background:rgba(255,71,87,.1)}
+.parts-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.part-btn{background:var(--card);border:2px solid transparent;border-radius:12px;padding:14px 8px;text-align:center;cursor:pointer;font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;color:var(--text);transition:all .2s}
+.part-btn:active{transform:scale(.94)}.part-btn.selected{border-color:var(--accent);background:rgba(255,107,157,.15);box-shadow:0 0 12px var(--accent-glow)}
+.part-btn .part-emoji{font-size:22px;margin-bottom:4px;display:block}
+.random-btn{width:100%;padding:14px;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:12px;color:#fff;font-family:'Nunito',sans-serif;font-size:15px;font-weight:800;cursor:pointer;margin-bottom:16px}.random-btn:active{transform:scale(.96)}
+.cooldown-overlay{display:none;position:fixed;inset:0;background:rgba(15,15,26,.95);z-index:100;align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:20px}
+.cooldown-overlay.show{display:flex}.cooldown-timer{font-size:64px;font-weight:900;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}.cooldown-text{font-size:16px;color:var(--text2);margin-top:12px}
+.bite-center{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:80vh;text-align:center}
+.bite-scene{display:none;width:100%;max-width:380px;text-align:center}.bite-scene.show{display:block}
+.bite-gif{width:180px;height:180px;border-radius:20px;object-fit:cover;margin:0 auto 24px;display:block;animation:gifPop .5s ease both;box-shadow:0 8px 30px rgba(0,0,0,.4)}
+@keyframes gifPop{0%{transform:scale(0);opacity:0}60%{transform:scale(1.1)}100%{transform:scale(1);opacity:1}}
+.bite-from{font-size:15px;color:var(--text2);margin-bottom:8px;animation:fadeInUp .5s ease .3s both}.bite-from strong{color:var(--accent);font-weight:800}
+.bite-phrase{font-size:22px;font-weight:900;line-height:1.4;margin-bottom:8px;animation:fadeInUp .5s ease .5s both}
+.bite-part{font-size:14px;color:var(--text2);margin-bottom:32px;animation:fadeInUp .5s ease .6s both}
+.bite-part span{display:inline-block;background:var(--card);padding:4px 14px;border-radius:20px;font-weight:700}
+.actions{display:flex;flex-direction:column;gap:10px;animation:fadeInUp .5s ease .8s both}
+.action-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.action-btn{padding:14px 16px;border:none;border-radius:12px;font-family:'Nunito',sans-serif;font-size:14px;font-weight:800;cursor:pointer;transition:all .2s}.action-btn:active{transform:scale(.96)}
+.action-btn.reply-random{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff}
+.action-btn.reply-choose{background:var(--card);color:var(--text);border:2px solid var(--accent)}
+.action-btn.block-btn{background:transparent;color:var(--danger);font-size:13px;font-weight:700;padding:10px}
+.error-state{display:none;text-align:center}.error-state.show{display:block}.error-emoji{font-size:48px;margin-bottom:12px}.error-text{font-size:16px;color:var(--text2)}
+.tabs{display:flex;background:var(--card);border-radius:12px;padding:4px;margin-bottom:20px}
+.tab{flex:1;padding:12px;text-align:center;border-radius:10px;font-weight:800;font-size:15px;cursor:pointer;transition:all .3s;color:var(--text2)}
+.tab.active{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;box-shadow:0 2px 12px var(--accent-glow)}
+.counters{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:24px}
+.counter-card{background:var(--card);border-radius:var(--radius);padding:20px 16px;text-align:center}
+.counter-value{font-size:36px;font-weight:900;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.counter-label{font-size:13px;font-weight:700;color:var(--text2);margin-top:4px}
+.section{margin-bottom:24px;animation:fadeIn .4s ease both}
+.section-title{font-size:16px;font-weight:800;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.top-list{background:var(--card);border-radius:var(--radius);overflow:hidden}
+.top-item{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid rgba(255,255,255,.05)}.top-item:last-child{border-bottom:none}
+.top-rank{width:28px;height:28px;border-radius:50%;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;flex-shrink:0}
+.top-rank.gold{background:#ffd700;color:#1a1a2e}.top-rank.silver{background:#c0c0c0;color:#1a1a2e}.top-rank.bronze{background:#cd7f32;color:#fff}
+.top-name{flex:1;font-weight:700;font-size:15px}.top-count{font-weight:800;color:var(--accent);font-size:15px}
+.bar-container{background:var(--card);border-radius:var(--radius);overflow:hidden}
+.bar-item{padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.05)}.bar-item:last-child{border-bottom:none}
+.bar-label{display:flex;justify-content:space-between;margin-bottom:6px}.bar-name{font-weight:700;font-size:14px}.bar-value{font-weight:800;color:var(--accent);font-size:14px}
+.bar-track{height:8px;background:var(--bg);border-radius:4px;overflow:hidden}
+.bar-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .8s}
+.ach-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.ach{background:var(--card);border-radius:12px;padding:12px 8px;text-align:center;opacity:.3;transition:all .3s}
+.ach.unlocked{opacity:1;border:2px solid var(--accent);box-shadow:0 0 10px var(--accent-glow)}
+.ach-icon{font-size:24px;margin-bottom:2px}.ach-title{font-size:11px;font-weight:800;line-height:1.2}
+.empty-state{text-align:center;padding:24px;color:var(--text2);font-size:14px}
+.stats-tab-content{display:none}.stats-tab-content.active{display:block}
 </style>
 </head>
 <body>
+<div class="lock-screen" id="lockScreen"><div class="lock-icon">🔒</div><div class="lock-title">Откройте через Telegram</div><div class="lock-text">Бот работает только внутри Telegram.</div><a class="lock-link" href="https://t.me/KycbkaBot">Открыть бота 🐾</a></div>
+<div class="cooldown-overlay" id="cooldownOverlay"><div class="cooldown-timer" id="cooldownTimer">60</div><div class="cooldown-text">Подожди немного 🐾</div></div>
 
-<!-- Lock screen -->
-<div class="lock-screen" id="lockScreen">
-  <div class="lock-icon">🔒</div>
-  <div class="lock-title">Откройте через Telegram</div>
-  <div class="lock-text">Кусьбот работает только внутри Telegram.</div>
-  <a class="lock-link" href="https://t.me/KycbkaBot">Открыть бота 🐾</a>
-</div>
+<!-- CREATE -->
+<div class="page" id="pageCreate"><div class="container">
+<div class="header"><div class="logo" id="createLogo">🐾</div><h1 id="createTitle">Кусьбот</h1></div>
+<div class="step active" id="step1"><div class="step-label">Шаг 1 из 3</div><div class="step-title" id="step1Title">Кого кусаем? 😼</div><input class="name-input" id="recipientName" type="text" placeholder="Имя получателя..." maxlength="64" autocomplete="off"><div class="preview-card" id="previewCard"><div class="preview-avatar" id="previewAvatar">?</div><div class="preview-text" id="previewText">Кусь полетит к <strong id="previewName">...</strong></div></div><button class="main-btn primary" id="nextStep1" disabled>Далее →</button></div>
+<div class="step" id="step2"><div class="back-row"><button class="back-btn" onclick="Create.goStep(1)">← Назад</button></div><div class="step-label">Шаг 2 из 3</div><div class="step-title" id="step2Title">Какой кусь? 🎭</div><div class="mode-grid"><div class="mode-btn" id="modeA" onclick="Create.selectMode('lite')"><div class="mode-icon" id="modeAIcon">🐾</div><div class="mode-name" id="modeAName">Лайт</div><div class="mode-desc" id="modeADesc">Милый и смешной</div></div><div class="mode-btn" id="modeB" onclick="Create.selectMode('spicy')"><div class="mode-icon" id="modeBIcon">🌶</div><div class="mode-name" id="modeBName">С перчинкой</div><div class="mode-desc" id="modeBDesc">Для особенных 😏</div></div></div><div style="height:16px"></div><button class="main-btn primary" id="nextStep2" disabled>Далее →</button></div>
+<div class="step" id="step3"><div class="back-row"><button class="back-btn" onclick="Create.goStep(2)">← Назад</button></div><div class="step-label">Шаг 3 из 3</div><div class="step-title" id="step3Title">Куда кусаем? 👀</div><div class="parts-grid" id="partsGrid"></div><button class="random-btn" onclick="Create.selectRandom()">🎲 Рандом!</button><button class="main-btn primary" id="biteBtn" disabled>🐾 Кусь!</button></div>
+<div class="loading hidden" id="createLoading"><div class="spinner"></div><div style="color:var(--text2);font-weight:700">Создаём...</div></div>
+</div></div>
 
-<!-- Cooldown overlay -->
-<div class="cooldown-overlay" id="cooldownOverlay">
-  <div class="cooldown-timer" id="cooldownTimer">60</div>
-  <div class="cooldown-text">Подожди немного перед следующим кусём 🐾</div>
-</div>
+<!-- BITE VIEW -->
+<div class="page" id="pageBite"><div class="container"><div class="bite-center">
+<div class="loading" id="biteLoading"><div class="spinner"></div><div style="color:var(--text2);font-weight:700">Загружаем...</div></div>
+<div class="bite-scene" id="biteScene"><video class="bite-gif" id="biteGif" src="bite.mp4" autoplay loop muted playsinline></video><div class="bite-from"><span id="biteAction">Кусь</span> от <strong id="senderName">...</strong></div><div class="bite-phrase" id="bitePhrase">...</div><div class="bite-part"><span id="bitePart">...</span></div><div class="actions"><div class="action-row"><button class="action-btn reply-random" id="replyRandomBtn">🎲 В ответ</button><button class="action-btn reply-choose" id="replyChooseBtn">✨ Выбрать</button></div><button class="action-btn block-btn" id="blockBtn">🚫 Заблокировать</button></div></div>
+<div class="error-state" id="biteError"><div class="error-emoji">😿</div><div class="error-text">Не найдено</div></div>
+</div></div></div>
 
-<!-- ==================== PAGE: CREATE ==================== -->
-<div class="page" id="pageCreate">
-  <div class="container">
-    <div class="header">
-      <div class="logo">🐾</div>
-      <h1>Кусьбот</h1>
-    </div>
-
-    <!-- Step 1: Имя -->
-    <div class="step active" id="step1">
-      <div class="step-label">Шаг 1 из 3</div>
-      <div class="step-title">Кого кусаем? 😼</div>
-      <div class="name-input-wrap">
-        <input class="name-input" id="recipientName" type="text" placeholder="Имя получателя..." maxlength="64" autocomplete="off">
-      </div>
-      <div class="preview-card" id="previewCard">
-        <div class="preview-avatar" id="previewAvatar">?</div>
-        <div class="preview-text">Кусь полетит к <strong id="previewName">...</strong></div>
-      </div>
-      <div style="height:16px"></div>
-      <button class="main-btn primary" id="nextStep1" disabled>Далее →</button>
-    </div>
-
-    <!-- Step 2: Режим -->
-    <div class="step" id="step2">
-      <div class="back-row"><button class="back-btn" onclick="Create.goStep(1)">← Назад</button></div>
-      <div class="step-label">Шаг 2 из 3</div>
-      <div class="step-title">Какой кусь? 🎭</div>
-      <div class="mode-grid">
-        <div class="mode-btn" id="modeLite" onclick="Create.selectMode('lite')">
-          <div class="mode-icon">🐾</div>
-          <div class="mode-name">Лайт</div>
-          <div class="mode-desc">Милый и смешной</div>
-        </div>
-        <div class="mode-btn" id="modeSpicy" onclick="Create.selectMode('spicy')">
-          <div class="mode-icon">🌶</div>
-          <div class="mode-name">С перчинкой</div>
-          <div class="mode-desc">Для особенных 😏</div>
-        </div>
-      </div>
-      <div style="height:16px"></div>
-      <button class="main-btn primary" id="nextStep2" disabled>Далее →</button>
-    </div>
-
-    <!-- Step 3: Часть тела -->
-    <div class="step" id="step3">
-      <div class="back-row"><button class="back-btn" onclick="Create.goStep(2)">← Назад</button></div>
-      <div class="step-label">Шаг 3 из 3</div>
-      <div class="step-title">Куда кусаем? 👀</div>
-      <div class="parts-grid" id="partsGrid"></div>
-      <button class="random-btn" onclick="Create.selectRandom()">🎲 Рандом!</button>
-      <button class="main-btn primary" id="biteBtn" disabled>🐾 Кусь!</button>
-    </div>
-
-    <!-- Loading -->
-    <div class="loading hidden" id="createLoading">
-      <div class="spinner"></div>
-      <div style="color:var(--text2); font-weight:700">Создаём кусь...</div>
-    </div>
-  </div>
-</div>
-
-<!-- ==================== PAGE: BITE ==================== -->
-<div class="page" id="pageBite">
-  <div class="container">
-    <div class="bite-center">
-      <div class="loading" id="biteLoading">
-        <div class="spinner"></div>
-        <div style="color:var(--text2); font-weight:700">Загружаем кусь...</div>
-      </div>
-
-      <div class="bite-scene" id="biteScene">
-        <div class="teeth-container">
-          <div class="pulse-ring"></div>
-          <div class="tooth-top">🦷</div>
-          <div class="tooth-bottom">🦷</div>
-          <div class="sparkles" id="sparkles"></div>
-        </div>
-        <div class="bite-from">Кусь от <strong id="senderName">...</strong></div>
-        <div class="bite-phrase" id="bitePhrase">...</div>
-        <div class="bite-part"><span id="bitePart">...</span></div>
-        <div class="actions">
-          <div class="action-row">
-            <button class="action-btn reply-random" id="replyRandomBtn">🎲 Кусь в ответ</button>
-            <button class="action-btn reply-choose" id="replyChooseBtn">✨ Выбрать куда</button>
-          </div>
-          <button class="action-btn block-btn" id="blockBtn">🚫 Заблокировать отправителя</button>
-        </div>
-      </div>
-
-      <div class="error-state" id="biteError">
-        <div class="error-emoji">😿</div>
-        <div class="error-text">Кусь не найден или уже просмотрен</div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ==================== PAGE: STATS ==================== -->
-<div class="page" id="pageStats">
-  <div class="container">
-    <div class="header">
-      <div class="logo" style="animation:none">📊</div>
-      <h1>Кусь-статистика</h1>
-    </div>
-
-    <div class="loading" id="statsLoading">
-      <div class="spinner"></div>
-      <div style="color:var(--text2); font-weight:700">Загружаем...</div>
-    </div>
-
-    <div id="statsContent" style="display:none">
-      <div class="counters">
-        <div class="counter-card">
-          <div class="counter-value" id="sentCount">0</div>
-          <div class="counter-label">Куснул(-а)</div>
-        </div>
-        <div class="counter-card">
-          <div class="counter-value" id="recvCount">0</div>
-          <div class="counter-label">Куснули тебя</div>
-        </div>
-      </div>
-
-      <div class="section" style="animation-delay: 0.1s">
-        <div class="section-title">🏆 Топ кусаемых мест</div>
-        <div class="bar-container" id="topParts"></div>
-      </div>
-
-      <div class="section" style="animation-delay: 0.2s">
-        <div class="section-title">👥 Кого кусал(-а) больше всего</div>
-        <div class="top-list" id="topRecipients"></div>
-      </div>
-
-      <div class="section" style="animation-delay: 0.3s">
-        <div class="section-title">👥 Кто тебя кусал больше всего</div>
-        <div class="top-list" id="topSenders"></div>
-      </div>
-
-      <div class="section" style="animation-delay: 0.4s">
-        <div class="section-title">🏅 Достижения</div>
-        <div class="achievements-grid" id="achievements"></div>
-      </div>
-    </div>
-  </div>
-</div>
+<!-- STATS -->
+<div class="page" id="pageStats"><div class="container">
+<div class="header"><div class="logo" style="animation:none">📊</div><h1>Статистика</h1></div>
+<div class="tabs"><div class="tab active" id="tabBite" onclick="Stats.switchTab('bite')">🐾 Кусь</div><div class="tab" id="tabKiss" onclick="Stats.switchTab('kiss')">💋 Поцелуй</div></div>
+<div class="loading" id="statsLoading"><div class="spinner"></div><div style="color:var(--text2);font-weight:700">Загружаем...</div></div>
+<div id="statsContent" style="display:none"><div class="stats-tab-content active" id="statsBite"></div><div class="stats-tab-content" id="statsKiss"></div></div>
+</div></div>
 
 <script>
-// ==================== GLOBALS ====================
-const API = 'https://bite-bot.lisofoxa.workers.dev';
-const tg = window.Telegram?.WebApp;
-let userId = null;
-let userName = '';
+var API='https://bite-bot.lisofoxa.workers.dev',tg=window.Telegram&&window.Telegram.WebApp,userId=null,userName='';
+var BITE_LITE=[{n:'щёчка',e:'😊'},{n:'ушко',e:'👂'},{n:'носик',e:'👃'},{n:'лобик',e:'🧠'},{n:'пальчик',e:'👆'},{n:'плечико',e:'💪'},{n:'ручка',e:'🤚'},{n:'коленка',e:'🦵'},{n:'пяточка',e:'🦶'}];
+var BITE_SPICY=BITE_LITE.concat([{n:'шейка',e:'🌙'},{n:'губки',e:'💋'},{n:'пузико',e:'😏'},{n:'бочок',e:'🤗'},{n:'попка',e:'🍑'},{n:'ключица',e:'✨'},{n:'мочка уха',e:'👂'}]);
+var KISS_LITE=[{n:'щёчка',e:'😊'},{n:'лобик',e:'🧠'},{n:'носик',e:'👃'},{n:'ручка',e:'🤚'},{n:'плечико',e:'💪'},{n:'макушка',e:'👑'}];
+var KISS_SPICY=KISS_LITE.concat([{n:'губки',e:'💋'},{n:'шейка',e:'🌙'},{n:'ключица',e:'✨'},{n:'мочка уха',e:'👂'},{n:'пальчик',e:'👆'}]);
 
-const PARTS_LITE = [
-  { name: 'щёчка', emoji: '😊' },
-  { name: 'ушко', emoji: '👂' },
-  { name: 'носик', emoji: '👃' },
-  { name: 'лобик', emoji: '🧠' },
-  { name: 'пальчик', emoji: '👆' },
-  { name: 'плечико', emoji: '💪' },
-  { name: 'ручка', emoji: '🤚' },
-  { name: 'коленка', emoji: '🦵' },
-  { name: 'пяточка', emoji: '🦶' }
-];
-const PARTS_SPICY_EXTRA = [
-  { name: 'шейка', emoji: '🌙' },
-  { name: 'губки', emoji: '💋' },
-  { name: 'пузико', emoji: '😏' },
-  { name: 'бочок', emoji: '🤗' },
-  { name: 'попка', emoji: '🍑' },
-  { name: 'ключица', emoji: '✨' },
-  { name: 'мочка уха', emoji: '👂' }
-];
-const ALL_ACHIEVEMENTS = [
-  { count: 1, icon: '🐣', title: 'Первый кусь' },
-  { count: 10, icon: '🐾', title: 'Кусака' },
-  { count: 25, icon: '🦷', title: 'Зубастик' },
-  { count: 50, icon: '😈', title: 'Кусь-маньяк' },
-  { count: 100, icon: '👑', title: 'Кусь-легенда' },
-];
+function getPartEmoji(p){var a=BITE_SPICY.concat(KISS_SPICY);for(var i=0;i<a.length;i++)if(a[i].n===p)return a[i].e;return'🐾';}
+function escHtml(s){var d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+function navigate(p){var pages=document.querySelectorAll('.page');for(var i=0;i<pages.length;i++)pages[i].classList.remove('active');var el=document.getElementById('page'+p.charAt(0).toUpperCase()+p.slice(1));if(el)el.classList.add('active');}
 
-function getPartEmoji(part) {
-  const all = [...PARTS_LITE, ...PARTS_SPICY_EXTRA];
-  const found = all.find(p => p.name === part);
-  return found ? found.emoji : '🐾';
-}
-
-function escHtml(s) {
-  const d = document.createElement('div');
-  d.textContent = s;
-  return d.innerHTML;
-}
-
-// ==================== ROUTER ====================
-function navigate(page) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  const el = document.getElementById('page' + page.charAt(0).toUpperCase() + page.slice(1));
-  if (el) el.classList.add('active');
-}
-
-// ==================== INIT ====================
-document.addEventListener('DOMContentLoaded', () => {
-  if (!tg || !tg.initDataUnsafe?.user) {
-    document.getElementById('lockScreen').classList.add('show');
-    return;
-  }
-
-  tg.ready();
-  tg.expand();
-  tg.setHeaderColor('#0f0f1a');
-  tg.setBackgroundColor('#0f0f1a');
-
-  userId = tg.initDataUnsafe.user.id;
-  userName = tg.initDataUnsafe.user.first_name || 'Аноним';
-
-  // Роутинг
-  const params = new URLSearchParams(window.location.search);
-  const page = params.get('page') || 'create';
-
-  if (page === 'bite') {
-    navigate('bite');
-    Bite.init(params);
-  } else if (page === 'stats') {
-    navigate('stats');
-    Stats.init();
-  } else {
-    navigate('create');
-    Create.init(params);
-  }
+document.addEventListener('DOMContentLoaded',function(){
+if(!tg||!tg.initDataUnsafe||!tg.initDataUnsafe.user){document.getElementById('lockScreen').classList.add('show');return;}
+tg.ready();tg.expand();tg.setHeaderColor('#0f0f1a');tg.setBackgroundColor('#0f0f1a');
+userId=tg.initDataUnsafe.user.id;userName=tg.initDataUnsafe.user.first_name||'Аноним';
+var p=new URLSearchParams(window.location.search),page=p.get('page')||'create';
+if(page==='bite'){navigate('bite');Bite.init(p);}else if(page==='stats'){navigate('stats');Stats.init();}else{navigate('create');Create.init(p);}
 });
 
-// ==================== CREATE ====================
-const Create = {
-  selectedMode: null,
-  selectedPart: null,
-  recipientName: '',
+var Create={action:'bite',mode:null,part:null,rname:'',
+init:function(p){
+  Create.action=p.get('action')||'bite';Create.setupUI();
+  var rn=p.get('name'),rm=p.get('mode');
+  if(rn){document.getElementById('recipientName').value=decodeURIComponent(rn);Create.updatePreview();if(rm){Create.selectMode(rm);Create.goStep(3);}else Create.goStep(2);}
+  Create.checkLimit();
+  document.getElementById('recipientName').addEventListener('input',Create.updatePreview);
+  document.getElementById('nextStep1').addEventListener('click',function(){Create.goStep(2);});
+  document.getElementById('nextStep2').addEventListener('click',function(){Create.goStep(3);});
+  document.getElementById('biteBtn').addEventListener('click',Create.send);
+},
+setupUI:function(){
+  var k=Create.action==='kiss';
+  document.getElementById('createLogo').textContent=k?'💋':'🐾';
+  document.getElementById('createTitle').textContent=k?'Поцелуйбот':'Кусьбот';
+  document.getElementById('step1Title').textContent=k?'Кого целуем? 💕':'Кого кусаем? 😼';
+  document.getElementById('previewText').innerHTML=k?'Поцелуй полетит к <strong id="previewName">...</strong>':'Кусь полетит к <strong id="previewName">...</strong>';
+  document.getElementById('step2Title').textContent=k?'Какой поцелуй? 💫':'Какой кусь? 🎭';
+  document.getElementById('modeAIcon').textContent=k?'💕':'🐾';
+  document.getElementById('modeAName').textContent=k?'Нежный':'Лайт';
+  document.getElementById('modeADesc').textContent=k?'Мило и трогательно':'Милый и смешной';
+  document.getElementById('modeBIcon').textContent=k?'🔥':'🌶';
+  document.getElementById('modeBName').textContent=k?'Страстный':'С перчинкой';
+  document.getElementById('modeBDesc').textContent=k?'Для особенных 😏':'Для особенных 😏';
+  document.getElementById('step3Title').textContent=k?'Куда целуем? 💋':'Куда кусаем? 👀';
+  document.getElementById('biteBtn').textContent=k?'💋 Поцеловать!':'🐾 Кусь!';
+  if(k){document.documentElement.style.setProperty('--accent','#ff69b4');document.documentElement.style.setProperty('--accent2','#ff1493');document.documentElement.style.setProperty('--accent-glow','rgba(255,105,180,.3)');}
+},
+updatePreview:function(){
+  var v=document.getElementById('recipientName').value.trim(),card=document.getElementById('previewCard');
+  if(v.length>0){card.classList.add('show');document.getElementById('previewAvatar').textContent=v[0].toUpperCase();var pn=document.getElementById('previewName');if(pn)pn.textContent=v;document.getElementById('nextStep1').disabled=false;Create.rname=v;}
+  else{card.classList.remove('show');document.getElementById('nextStep1').disabled=true;}
+},
+goStep:function(n){var s=document.querySelectorAll('.step');for(var i=0;i<s.length;i++)s[i].classList.remove('active');document.getElementById('step'+n).classList.add('active');if(n===3)Create.renderParts();},
+selectMode:function(m){Create.mode=m;document.getElementById('modeA').className='mode-btn'+(m==='lite'?' sel-a':'');document.getElementById('modeB').className='mode-btn'+(m==='spicy'?' sel-b':'');document.getElementById('nextStep2').disabled=false;},
+getParts:function(){var k=Create.action==='kiss';return k?(Create.mode==='spicy'?KISS_SPICY:KISS_LITE):(Create.mode==='spicy'?BITE_SPICY:BITE_LITE);},
+renderParts:function(){
+  var g=document.getElementById('partsGrid'),parts=Create.getParts(),h='';
+  for(var i=0;i<parts.length;i++){var p=parts[i],sel=Create.part===p.n?'selected':'';h+='<div class="part-btn '+sel+'" onclick="Create.selectPart(\''+p.n+'\')"><span class="part-emoji">'+p.e+'</span>'+p.n+'</div>';}
+  g.innerHTML=h;
+},
+selectPart:function(n){Create.part=n;Create.renderParts();document.getElementById('biteBtn').disabled=false;},
+selectRandom:function(){
+  var parts=Create.getParts();Create.selectPart(parts[Math.floor(Math.random()*parts.length)].n);
+  var btns=document.querySelectorAll('.part-btn'),i=0;
+  var iv=setInterval(function(){for(var j=0;j<btns.length;j++)btns[j].classList.remove('selected');if(btns[i])btns[i].classList.add('selected');i++;if(i>=btns.length){clearInterval(iv);Create.renderParts();}},50);
+},
+checkLimit:function(){fetch(API+'/api/check-limit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:userId})}).then(function(r){return r.json();}).then(function(d){if(!d.ok&&d.remaining>0)Create.showCooldown(d.remaining);}).catch(function(){});},
+showCooldown:function(ms){var o=document.getElementById('cooldownOverlay');o.classList.add('show');var tick=function(){ms-=1000;if(ms<=0){o.classList.remove('show');return;}document.getElementById('cooldownTimer').textContent=Math.ceil(ms/1000);setTimeout(tick,1000);};document.getElementById('cooldownTimer').textContent=Math.ceil(ms/1000);setTimeout(tick,1000);},
+send:function(){
+  if(!Create.part||!Create.mode||!Create.rname)return;
+  document.getElementById('biteBtn').disabled=true;
+  var s=document.querySelectorAll('.step');for(var i=0;i<s.length;i++)s[i].classList.remove('active');
+  document.getElementById('createLoading').classList.remove('hidden');
+  fetch(API+'/api/create',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sender_id:userId,sender_name:userName,recipient_name:Create.rname,body_part:Create.part,mode:Create.mode,type:Create.action})}).then(function(r){return r.json();}).then(function(d){
+    if(d.ok){if(tg.HapticFeedback)tg.HapticFeedback.notificationOccurred('success');setTimeout(function(){tg.close();},500);}
+    else if(d.error==='cooldown'){document.getElementById('createLoading').classList.add('hidden');Create.showCooldown(d.remaining);Create.goStep(3);}
+    else throw new Error(d.error);
+  }).catch(function(){document.getElementById('createLoading').classList.add('hidden');Create.goStep(3);document.getElementById('biteBtn').disabled=false;tg.showAlert('Ошибка. Попробуй ещё раз!');});
+}};
 
-  init(params) {
-    const replyName = params.get('name');
-    const replyMode = params.get('mode');
-
-    if (replyName) {
-      document.getElementById('recipientName').value = decodeURIComponent(replyName);
-      Create.updatePreview();
-      if (replyMode) {
-        Create.selectMode(replyMode);
-        Create.goStep(3);
-      } else {
-        Create.goStep(2);
-      }
-    }
-
-    Create.checkLimit();
-
-    document.getElementById('recipientName').addEventListener('input', Create.updatePreview);
-    document.getElementById('nextStep1').addEventListener('click', () => Create.goStep(2));
-    document.getElementById('nextStep2').addEventListener('click', () => Create.goStep(3));
-    document.getElementById('biteBtn').addEventListener('click', Create.createBite);
-  },
-
-  updatePreview() {
-    const input = document.getElementById('recipientName');
-    const card = document.getElementById('previewCard');
-    const name = input.value.trim();
-    if (name.length > 0) {
-      card.classList.add('show');
-      document.getElementById('previewAvatar').textContent = name[0].toUpperCase();
-      document.getElementById('previewName').textContent = name;
-      document.getElementById('nextStep1').disabled = false;
-      Create.recipientName = name;
-    } else {
-      card.classList.remove('show');
-      document.getElementById('nextStep1').disabled = true;
-    }
-  },
-
-  goStep(n) {
-    document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
-    document.getElementById(`step${n}`).classList.add('active');
-    if (n === 3) Create.renderParts();
-  },
-
-  selectMode(mode) {
-    Create.selectedMode = mode;
-    document.getElementById('modeLite').className = 'mode-btn' + (mode === 'lite' ? ' selected-lite' : '');
-    document.getElementById('modeSpicy').className = 'mode-btn' + (mode === 'spicy' ? ' selected-spicy' : '');
-    document.getElementById('nextStep2').disabled = false;
-  },
-
-  renderParts() {
-    const grid = document.getElementById('partsGrid');
-    const parts = Create.selectedMode === 'spicy' ? [...PARTS_LITE, ...PARTS_SPICY_EXTRA] : PARTS_LITE;
-    grid.innerHTML = parts.map(p => `
-      <div class="part-btn ${Create.selectedPart === p.name ? 'selected' + (Create.selectedMode === 'spicy' ? ' spicy-mode' : '') : ''}"
-           onclick="Create.selectPart('${p.name}')">
-        <span class="part-emoji">${p.emoji}</span>
-        ${p.name}
-      </div>
-    `).join('');
-  },
-
-  selectPart(name) {
-    Create.selectedPart = name;
-    Create.renderParts();
-    document.getElementById('biteBtn').disabled = false;
-  },
-
-  selectRandom() {
-    const parts = Create.selectedMode === 'spicy' ? [...PARTS_LITE, ...PARTS_SPICY_EXTRA] : PARTS_LITE;
-    const random = parts[Math.floor(Math.random() * parts.length)];
-    Create.selectPart(random.name);
-    const btns = document.querySelectorAll('.part-btn');
-    let i = 0;
-    const interval = setInterval(() => {
-      btns.forEach(b => b.classList.remove('selected', 'spicy-mode'));
-      if (btns[i]) btns[i].classList.add('selected', Create.selectedMode === 'spicy' ? 'spicy-mode' : '');
-      i++;
-      if (i >= btns.length) { clearInterval(interval); Create.renderParts(); }
-    }, 50);
-  },
-
-  async checkLimit() {
-    try {
-      const res = await fetch(`${API}/api/check-limit`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user_id: userId })
-      });
-      const data = await res.json();
-      if (!data.ok && data.remaining > 0) Create.showCooldown(data.remaining);
-    } catch(e) { console.error('Limit check failed', e); }
-  },
-
-  showCooldown(remainingMs) {
-    const overlay = document.getElementById('cooldownOverlay');
-    overlay.classList.add('show');
-    const update = () => {
-      remainingMs -= 1000;
-      if (remainingMs <= 0) { overlay.classList.remove('show'); return; }
-      document.getElementById('cooldownTimer').textContent = Math.ceil(remainingMs / 1000);
-      setTimeout(update, 1000);
-    };
-    document.getElementById('cooldownTimer').textContent = Math.ceil(remainingMs / 1000);
-    setTimeout(update, 1000);
-  },
-
-  async createBite() {
-    if (!Create.selectedPart || !Create.selectedMode || !Create.recipientName) return;
-    document.getElementById('biteBtn').disabled = true;
-    document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
-    document.getElementById('createLoading').classList.remove('hidden');
-
-    try {
-      const res = await fetch(`${API}/api/create`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          sender_id: userId,
-          sender_name: userName,
-          recipient_name: Create.recipientName,
-          body_part: Create.selectedPart,
-          mode: Create.selectedMode
-        })
-      });
-      const data = await res.json();
-
-      if (data.ok) {
-        tg.HapticFeedback?.notificationOccurred('success');
-        setTimeout(() => tg.close(), 500);
-      } else if (data.error === 'cooldown') {
-        document.getElementById('createLoading').classList.add('hidden');
-        Create.showCooldown(data.remaining);
-        Create.goStep(3);
-      } else {
-        throw new Error(data.error);
-      }
-    } catch(e) {
-      console.error('Create error', e);
-      document.getElementById('createLoading').classList.add('hidden');
-      Create.goStep(3);
-      document.getElementById('biteBtn').disabled = false;
-      tg.showAlert('Ошибка при создании кусь. Попробуй ещё раз!');
-    }
-  }
+var Bite={
+init:function(p){var id=p.get('id');if(!id){Bite.err();return;}fetch(API+'/api/bite',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({bite_id:id})}).then(function(r){return r.json();}).then(function(d){if(!d.ok){Bite.err();return;}Bite.show(d.bite,id);}).catch(function(){Bite.err();});},
+show:function(b,id){
+  document.getElementById('biteLoading').style.display='none';
+  var k=b.type==='kiss';
+  document.getElementById('biteAction').textContent=k?'Поцелуй':'Кусь';
+  document.getElementById('senderName').textContent=b.sender_name;
+  document.getElementById('bitePhrase').textContent=b.phrase;
+  document.getElementById('bitePart').textContent=getPartEmoji(b.body_part)+' '+b.body_part;
+  if(k){document.documentElement.style.setProperty('--accent','#ff69b4');document.documentElement.style.setProperty('--accent2','#ff1493');document.documentElement.style.setProperty('--accent-glow','rgba(255,105,180,.3)');}
+  else if(b.mode==='spicy'){document.documentElement.style.setProperty('--accent','#ff4757');document.documentElement.style.setProperty('--accent2','#ff6348');document.documentElement.style.setProperty('--accent-glow','rgba(255,71,87,.3)');}
+  document.getElementById('biteScene').classList.add('show');
+  if(tg.HapticFeedback){tg.HapticFeedback.impactOccurred('heavy');setTimeout(function(){tg.HapticFeedback.notificationOccurred('success');},400);}
+  document.getElementById('replyRandomBtn').addEventListener('click',function(){var np=new URLSearchParams();np.set('page','create');np.set('action',b.type||'bite');np.set('reply',b.sender_id);np.set('mode',b.mode);np.set('name',b.sender_name);window.location.search=np.toString();});
+  document.getElementById('replyChooseBtn').addEventListener('click',function(){var np=new URLSearchParams();np.set('page','create');np.set('action',b.type||'bite');np.set('reply',b.sender_id);np.set('name',b.sender_name);window.location.search=np.toString();});
+  document.getElementById('blockBtn').addEventListener('click',function(){tg.showConfirm('Заблокировать? Отправитель не узнает.',function(ok){if(!ok)return;fetch(API+'/api/block',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({blocker_id:userId,bite_id:id})}).then(function(){tg.showAlert('🚫 Заблокировано.');document.getElementById('blockBtn').textContent='✅ Заблокировано';document.getElementById('blockBtn').disabled=true;}).catch(function(){tg.showAlert('Ошибка.');});});});
+},
+err:function(){document.getElementById('biteLoading').style.display='none';document.getElementById('biteError').classList.add('show');}
 };
 
-// ==================== BITE ====================
-const Bite = {
-  biteData: null,
-
-  async init(params) {
-    const biteId = params.get('id');
-    if (!biteId) { Bite.showError(); return; }
-
-    try {
-      const res = await fetch(`${API}/api/bite`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ bite_id: biteId })
-      });
-      const data = await res.json();
-      if (!data.ok) { Bite.showError(); return; }
-
-      Bite.biteData = data.bite;
-      Bite.showBite(data.bite, biteId);
-    } catch(e) {
-      console.error(e);
-      Bite.showError();
-    }
-  },
-
-  showBite(bite, biteId) {
-    document.getElementById('biteLoading').style.display = 'none';
-    document.getElementById('senderName').textContent = bite.sender_name;
-    document.getElementById('bitePhrase').textContent = bite.phrase;
-    document.getElementById('bitePart').textContent = `${getPartEmoji(bite.body_part)} ${bite.body_part}`;
-
-    if (bite.mode === 'spicy') {
-      document.documentElement.style.setProperty('--accent', '#ff4757');
-      document.documentElement.style.setProperty('--accent2', '#ff6348');
-      document.documentElement.style.setProperty('--accent-glow', 'rgba(255, 71, 87, 0.3)');
-    }
-
-    document.getElementById('biteScene').classList.add('show');
-    Bite.createSparkles();
-
-    tg.HapticFeedback?.impactOccurred('heavy');
-    setTimeout(() => tg.HapticFeedback?.notificationOccurred('success'), 400);
-
-    document.getElementById('replyRandomBtn').addEventListener('click', () => {
-      // Навигация внутри SPA
-      const newParams = new URLSearchParams();
-      newParams.set('page', 'create');
-      newParams.set('reply', bite.sender_id);
-      newParams.set('mode', bite.mode);
-      newParams.set('name', bite.sender_name);
-      window.location.search = newParams.toString();
-    });
-
-    document.getElementById('replyChooseBtn').addEventListener('click', () => {
-      const newParams = new URLSearchParams();
-      newParams.set('page', 'create');
-      newParams.set('reply', bite.sender_id);
-      newParams.set('name', bite.sender_name);
-      window.location.search = newParams.toString();
-    });
-
-    document.getElementById('blockBtn').addEventListener('click', () => {
-      tg.showConfirm('Заблокировать этого пользователя? Он не узнает об этом.', async (confirmed) => {
-        if (!confirmed) return;
-        try {
-          await fetch(`${API}/api/block`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ blocker_id: userId, bite_id: biteId })
-          });
-          tg.showAlert('🚫 Пользователь заблокирован.');
-          document.getElementById('blockBtn').textContent = '✅ Заблокирован';
-          document.getElementById('blockBtn').disabled = true;
-        } catch(e) { tg.showAlert('Ошибка. Попробуй позже.'); }
-      });
-    });
-  },
-
-  createSparkles() {
-    const container = document.getElementById('sparkles');
-    const emojis = ['✨', '💫', '⭐', '🌟', '💥', '🐾'];
-    for (let i = 0; i < 8; i++) {
-      const spark = document.createElement('div');
-      spark.className = 'sparkle';
-      spark.textContent = emojis[Math.floor(Math.random() * emojis.length)];
-      spark.style.left = `${20 + Math.random() * 60}%`;
-      spark.style.top = `${20 + Math.random() * 60}%`;
-      spark.style.animationDelay = `${0.3 + Math.random() * 0.5}s`;
-      container.appendChild(spark);
-    }
-  },
-
-  showError() {
-    document.getElementById('biteLoading').style.display = 'none';
-    document.getElementById('biteError').classList.add('show');
-  }
-};
-
-// ==================== STATS ====================
-const Stats = {
-  async init() {
-    try {
-      const res = await fetch(`${API}/api/stats`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user_id: userId })
-      });
-      const data = await res.json();
-      if (!data.ok) throw new Error('Failed');
-      Stats.render(data.stats);
-    } catch(e) {
-      console.error(e);
-      document.getElementById('statsLoading').innerHTML = `
-        <div style="font-size:48px;margin-bottom:12px">😿</div>
-        <div style="color:var(--text2);font-weight:700">Не удалось загрузить статистику</div>
-      `;
-    }
-  },
-
-  render(stats) {
-    document.getElementById('statsLoading').style.display = 'none';
-    document.getElementById('statsContent').style.display = 'block';
-
-    Stats.animateCount('sentCount', stats.sent);
-    Stats.animateCount('recvCount', stats.received);
-
-    // Top body parts
-    const partsContainer = document.getElementById('topParts');
-    if (stats.topBodyParts.length === 0) {
-      partsContainer.innerHTML = '<div class="empty-state">Пока нет данных 🐾</div>';
-    } else {
-      const maxCount = stats.topBodyParts[0][1];
-      partsContainer.innerHTML = stats.topBodyParts.map(([name, count]) => `
-        <div class="bar-item">
-          <div class="bar-label">
-            <span class="bar-name">${getPartEmoji(name)} ${name}</span>
-            <span class="bar-value">${count}</span>
-          </div>
-          <div class="bar-track">
-            <div class="bar-fill" style="width: ${(count / maxCount) * 100}%"></div>
-          </div>
-        </div>
-      `).join('');
-    }
-
-    // Top recipients
-    Stats.renderTopList('topRecipients', stats.topRecipients);
-    // Top senders
-    Stats.renderTopList('topSenders', stats.topSenders);
-
-    // Achievements
-    const achContainer = document.getElementById('achievements');
-    achContainer.innerHTML = ALL_ACHIEVEMENTS.map(a => {
-      const unlocked = stats.sent >= a.count;
-      return `
-        <div class="achievement ${unlocked ? 'unlocked' : ''}">
-          <div class="achievement-icon">${a.icon}</div>
-          <div class="achievement-title">${a.title}</div>
-          <div class="achievement-desc">${a.count} кусей</div>
-        </div>
-      `;
-    }).join('');
-  },
-
-  renderTopList(containerId, data) {
-    const container = document.getElementById(containerId);
-    if (data.length === 0) {
-      container.innerHTML = '<div class="empty-state">Пока нет данных 🐾</div>';
-      return;
-    }
-    const rankClasses = ['gold', 'silver', 'bronze'];
-    container.innerHTML = data.map(([name, count], i) => `
-      <div class="top-item">
-        <div class="top-rank ${rankClasses[i] || ''}">${i + 1}</div>
-        <div class="top-name">${escHtml(name)}</div>
-        <div class="top-count">${count}×</div>
-      </div>
-    `).join('');
-  },
-
-  animateCount(id, target) {
-    const el = document.getElementById(id);
-    if (target === 0) { el.textContent = '0'; return; }
-    let current = 0;
-    const step = Math.max(1, Math.floor(target / 30));
-    const interval = setInterval(() => {
-      current += step;
-      if (current >= target) { current = target; clearInterval(interval); }
-      el.textContent = current;
-    }, 30);
-  }
-};
+var Stats={data:null,
+init:function(){fetch(API+'/api/stats',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:userId})}).then(function(r){return r.json();}).then(function(d){if(!d.ok)throw 0;Stats.data=d.stats;Stats.render();}).catch(function(){document.getElementById('statsLoading').innerHTML='<div style="font-size:48px;margin-bottom:12px">😿</div><div style="color:var(--text2);font-weight:700">Ошибка загрузки</div>';});},
+render:function(){document.getElementById('statsLoading').style.display='none';document.getElementById('statsContent').style.display='block';Stats.renderTab('bite',document.getElementById('statsBite'),Stats.data.bite);Stats.renderTab('kiss',document.getElementById('statsKiss'),Stats.data.kiss);},
+renderTab:function(type,el,d){
+  var sl=type==='kiss'?'Поцеловал(-а)':'Куснул(-а)',rl=type==='kiss'?'Поцеловали тебя':'Куснули тебя';
+  var h='<div class="counters"><div class="counter-card"><div class="counter-value">'+d.sent+'</div><div class="counter-label">'+sl+'</div></div><div class="counter-card"><div class="counter-value">'+d.received+'</div><div class="counter-label">'+rl+'</div></div></div>';
+  h+='<div class="section"><div class="section-title">🏆 Топ мест</div><div class="bar-container">';
+  if(!d.topBodyParts.length)h+='<div class="empty-state">Пока нет данных 🐾</div>';
+  else{var mx=d.topBodyParts[0][1];for(var i=0;i<d.topBodyParts.length;i++){var bp=d.topBodyParts[i];h+='<div class="bar-item"><div class="bar-label"><span class="bar-name">'+getPartEmoji(bp[0])+' '+bp[0]+'</span><span class="bar-value">'+bp[1]+'</span></div><div class="bar-track"><div class="bar-fill" style="width:'+(bp[1]/mx*100)+'%"></div></div></div>';}}
+  h+='</div></div>';
+  h+='<div class="section"><div class="section-title">👥 Кому больше всего</div>'+Stats.topHTML(d.topRecipients)+'</div>';
+  h+='<div class="section"><div class="section-title">👥 От кого больше всего</div>'+Stats.topHTML(d.topSenders)+'</div>';
+  h+='<div class="section"><div class="section-title">🏅 Достижения</div><div class="ach-grid">';
+  var allA=Stats.allAch(type),unlocked=d.achievements.map(function(a){return a.title;});
+  for(var i=0;i<allA.length;i++){var a=allA[i],u=unlocked.indexOf(a.title)>=0;h+='<div class="ach '+(u?'unlocked':'')+'"><div class="ach-icon">'+a.icon+'</div><div class="ach-title">'+a.title+'</div></div>';}
+  h+='</div></div>';el.innerHTML=h;
+},
+topHTML:function(data){
+  if(!data.length)return'<div class="top-list"><div class="empty-state">Пока нет данных 🐾</div></div>';
+  var rc=['gold','silver','bronze'],h='<div class="top-list">';
+  for(var i=0;i<data.length;i++)h+='<div class="top-item"><div class="top-rank '+(rc[i]||'')+'">'+(i+1)+'</div><div class="top-name">'+escHtml(data[i][0])+'</div><div class="top-count">'+data[i][1]+'&#215;</div></div>';
+  return h+'</div>';
+},
+allAch:function(type){
+  if(type==='bite')return[{icon:'🐣',title:'Первый кусь'},{icon:'🐾',title:'Кусака'},{icon:'🦷',title:'Зубастик'},{icon:'😈',title:'Кусь-маньяк'},{icon:'👑',title:'Кусь-легенда'},{icon:'🎯',title:'Дегустатор'},{icon:'🧠',title:'Анатом'},{icon:'🌶',title:'Гурман'},{icon:'👥',title:'Социальный кусака'},{icon:'🌍',title:'Кусь по миру'},{icon:'🌟',title:'Популярный(-ая)'},{icon:'🍑',title:'Попкусь'},{icon:'💋',title:'Губкусь'},{icon:'🧛',title:'Вампирчик'},{icon:'🔥',title:'Острый на язык'},{icon:'🎀',title:'Куснули!'},{icon:'🧲',title:'Магнит кусей'}];
+  return[{icon:'💕',title:'Первый поцелуй'},{icon:'😘',title:'Романтик'},{icon:'💖',title:'Казанова'},{icon:'❤️‍🔥',title:'Дон Жуан'},{icon:'👑',title:'Легенда любви'},{icon:'🎯',title:'Нежный(-ая)'},{icon:'💝',title:'Щедрый(-ая)'},{icon:'🌟',title:'Любимчик'},{icon:'💋',title:'Настоящий поцелуй'},{icon:'🌙',title:'Лунный(-ая)'},{icon:'🔥',title:'Страстный(-ая)'},{icon:'🎀',title:'Поцеловали!'},{icon:'🧲',title:'Магнит поцелуев'}];
+},
+switchTab:function(tab){
+  document.getElementById('tabBite').className='tab'+(tab==='bite'?' active':'');
+  document.getElementById('tabKiss').className='tab'+(tab==='kiss'?' active':'');
+  document.getElementById('statsBite').className='stats-tab-content'+(tab==='bite'?' active':'');
+  document.getElementById('statsKiss').className='stats-tab-content'+(tab==='kiss'?' active':'');
+  if(tab==='kiss'){document.documentElement.style.setProperty('--accent','#ff69b4');document.documentElement.style.setProperty('--accent2','#ff1493');document.documentElement.style.setProperty('--accent-glow','rgba(255,105,180,.3)');}
+  else{document.documentElement.style.setProperty('--accent','#ff6b9d');document.documentElement.style.setProperty('--accent2','#c44dff');document.documentElement.style.setProperty('--accent-glow','rgba(255,107,157,.3)');}
+}};
 </script>
 </body>
 </html>
