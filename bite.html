@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Кусь! 🐾</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0f0f1a;
+  --card: #1a1a2e;
+  --accent: #ff6b9d;
+  --accent2: #c44dff;
+  --accent-glow: rgba(255, 107, 157, 0.3);
+  --text: #f0f0f0;
+  --text2: #a0a0b8;
+  --spicy: #ff4757;
+  --danger: #ff6b6b;
+  --radius: 16px;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'Nunito', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+/* Lock screen */
+.lock-screen {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  text-align: center;
+  padding: 40px;
+}
+.lock-screen.show { display: flex; }
+.lock-icon { font-size: 64px; margin-bottom: 20px; }
+.lock-title { font-size: 22px; font-weight: 800; margin-bottom: 12px; }
+.lock-text { font-size: 14px; color: var(--text2); margin-bottom: 24px; }
+.lock-link {
+  display: inline-block;
+  padding: 14px 28px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: white;
+  border-radius: 12px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+/* Loading */
+.loading { text-align: center; }
+.spinner {
+  width: 48px; height: 48px;
+  border: 4px solid var(--card);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto 16px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Bite animation */
+.bite-scene {
+  display: none;
+  text-align: center;
+  width: 100%;
+  max-width: 380px;
+}
+.bite-scene.show { display: block; }
+
+/* Зубки анимация */
+.teeth-container {
+  position: relative;
+  width: 180px;
+  height: 180px;
+  margin: 0 auto 24px;
+}
+.tooth-top, .tooth-bottom {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 80px;
+  line-height: 1;
+}
+.tooth-top {
+  top: 0;
+  animation: biteTop 0.6s ease forwards;
+}
+.tooth-bottom {
+  bottom: 0;
+  animation: biteBottom 0.6s ease forwards;
+}
+@keyframes biteTop {
+  0% { top: -40px; opacity: 0; }
+  60% { top: 30px; opacity: 1; }
+  80% { top: 20px; }
+  100% { top: 24px; opacity: 1; }
+}
+@keyframes biteBottom {
+  0% { bottom: -40px; opacity: 0; }
+  60% { bottom: 30px; opacity: 1; }
+  80% { bottom: 20px; }
+  100% { bottom: 24px; opacity: 1; }
+}
+
+/* Искры */
+.sparkles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.sparkle {
+  position: absolute;
+  font-size: 20px;
+  animation: sparkle 1s ease forwards;
+  opacity: 0;
+}
+@keyframes sparkle {
+  0% { opacity: 0; transform: scale(0) rotate(0deg); }
+  50% { opacity: 1; transform: scale(1.2) rotate(180deg); }
+  100% { opacity: 0; transform: scale(0.5) rotate(360deg) translateY(-30px); }
+}
+
+.bite-from {
+  font-size: 15px;
+  color: var(--text2);
+  margin-bottom: 8px;
+  animation: fadeInUp 0.5s ease 0.4s both;
+}
+.bite-from strong {
+  color: var(--accent);
+  font-weight: 800;
+}
+.bite-phrase {
+  font-size: 22px;
+  font-weight: 900;
+  line-height: 1.4;
+  margin-bottom: 8px;
+  animation: fadeInUp 0.5s ease 0.6s both;
+}
+.bite-part {
+  font-size: 14px;
+  color: var(--text2);
+  margin-bottom: 32px;
+  animation: fadeInUp 0.5s ease 0.7s both;
+}
+.bite-part span {
+  display: inline-block;
+  background: var(--card);
+  padding: 4px 14px;
+  border-radius: 20px;
+  font-weight: 700;
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Action buttons */
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  animation: fadeInUp 0.5s ease 0.9s both;
+}
+.action-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.action-btn {
+  padding: 14px 16px;
+  border: none;
+  border-radius: 12px;
+  font-family: 'Nunito', sans-serif;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.action-btn:active { transform: scale(0.96); }
+.action-btn.reply-random {
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: white;
+}
+.action-btn.reply-choose {
+  background: var(--card);
+  color: var(--text);
+  border: 2px solid var(--accent);
+}
+.action-btn.block-btn {
+  background: transparent;
+  color: var(--danger);
+  font-size: 13px;
+  font-weight: 700;
+  padding: 10px;
+}
+
+/* Пульс */
+.pulse-ring {
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 120px; height: 120px;
+  margin: -60px 0 0 -60px;
+  border-radius: 50%;
+  border: 3px solid var(--accent);
+  opacity: 0;
+  animation: pulse 1.5s ease 0.5s forwards;
+}
+@keyframes pulse {
+  0% { transform: scale(0.5); opacity: 0.6; }
+  100% { transform: scale(2); opacity: 0; }
+}
+
+/* Error */
+.error-state {
+  display: none;
+  text-align: center;
+}
+.error-state.show { display: block; }
+.error-emoji { font-size: 48px; margin-bottom: 12px; }
+.error-text { font-size: 16px; color: var(--text2); }
+</style>
+</head>
+<body>
+
+<div class="lock-screen" id="lockScreen">
+  <div class="lock-icon">🔒</div>
+  <div class="lock-title">Откройте через Telegram</div>
+  <div class="lock-text">Кусьбот работает только внутри Telegram.</div>
+  <a class="lock-link" href="https://t.me/KycbkaBot">Открыть бота 🐾</a>
+</div>
+
+<div class="loading" id="loadingState">
+  <div class="spinner"></div>
+  <div style="color:var(--text2); font-weight:700">Загружаем кусь...</div>
+</div>
+
+<div class="bite-scene" id="biteScene">
+  <div class="teeth-container">
+    <div class="pulse-ring"></div>
+    <div class="tooth-top">🦷</div>
+    <div class="tooth-bottom">🦷</div>
+    <div class="sparkles" id="sparkles"></div>
+  </div>
+  <div class="bite-from">Кусь от <strong id="senderName">...</strong></div>
+  <div class="bite-phrase" id="bitePhrase">...</div>
+  <div class="bite-part"><span id="bitePart">...</span></div>
+  <div class="actions">
+    <div class="action-row">
+      <button class="action-btn reply-random" id="replyRandomBtn">🎲 Кусь в ответ</button>
+      <button class="action-btn reply-choose" id="replyChooseBtn">✨ Выбрать куда</button>
+    </div>
+    <button class="action-btn block-btn" id="blockBtn">🚫 Заблокировать отправителя</button>
+  </div>
+</div>
+
+<div class="error-state" id="errorState">
+  <div class="error-emoji">😿</div>
+  <div class="error-text">Кусь не найден или уже просмотрен</div>
+</div>
+
+<script>
+const API = 'https://bite-bot.lisofoxa.workers.dev';
+const tg = window.Telegram?.WebApp;
+
+let biteData = null;
+let userId = null;
+
+document.addEventListener('DOMContentLoaded', async () => {
+  if (!tg || !tg.initDataUnsafe?.user) {
+    document.getElementById('lockScreen').classList.add('show');
+    return;
+  }
+
+  tg.ready();
+  tg.expand();
+  tg.setHeaderColor('#0f0f1a');
+  tg.setBackgroundColor('#0f0f1a');
+
+  userId = tg.initDataUnsafe.user.id;
+
+  const params = new URLSearchParams(window.location.search);
+  const biteId = params.get('id');
+
+  if (!biteId) {
+    showError();
+    return;
+  }
+
+  try {
+    const res = await fetch(`${API}/api/bite`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ bite_id: biteId })
+    });
+    const data = await res.json();
+
+    if (!data.ok) {
+      showError();
+      return;
+    }
+
+    biteData = data.bite;
+    showBite(biteData, biteId);
+  } catch(e) {
+    console.error(e);
+    showError();
+  }
+});
+
+function showBite(bite, biteId) {
+  document.getElementById('loadingState').style.display = 'none';
+
+  document.getElementById('senderName').textContent = bite.sender_name;
+  document.getElementById('bitePhrase').textContent = bite.phrase;
+  document.getElementById('bitePart').textContent = `${getPartEmoji(bite.body_part)} ${bite.body_part}`;
+
+  // Спайси стиль
+  if (bite.mode === 'spicy') {
+    document.documentElement.style.setProperty('--accent', '#ff4757');
+    document.documentElement.style.setProperty('--accent2', '#ff6348');
+    document.documentElement.style.setProperty('--accent-glow', 'rgba(255, 71, 87, 0.3)');
+  }
+
+  document.getElementById('biteScene').classList.add('show');
+
+  // Генерируем искры
+  createSparkles();
+
+  // Haptic
+  tg.HapticFeedback?.impactOccurred('heavy');
+  setTimeout(() => tg.HapticFeedback?.notificationOccurred('success'), 400);
+
+  // Кнопки ответа
+  document.getElementById('replyRandomBtn').addEventListener('click', () => {
+    // Открываем create.html с рандомным кусём из того же режима
+    const url = `create.html?reply=${bite.sender_id}&mode=${bite.mode}&name=${encodeURIComponent(bite.sender_name)}`;
+    // Генерируем рандомную часть тела прямо тут
+    window.location.href = url;
+  });
+
+  document.getElementById('replyChooseBtn').addEventListener('click', () => {
+    window.location.href = `create.html?reply=${bite.sender_id}&name=${encodeURIComponent(bite.sender_name)}`;
+  });
+
+  // Блокировка
+  document.getElementById('blockBtn').addEventListener('click', async () => {
+    tg.showConfirm('Заблокировать этого пользователя? Он не узнает об этом.', async (confirmed) => {
+      if (!confirmed) return;
+
+      try {
+        await fetch(`${API}/api/block`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ blocker_id: userId, bite_id: biteId })
+        });
+        tg.showAlert('🚫 Пользователь заблокирован.');
+        document.getElementById('blockBtn').textContent = '✅ Заблокирован';
+        document.getElementById('blockBtn').disabled = true;
+      } catch(e) {
+        tg.showAlert('Ошибка. Попробуй позже.');
+      }
+    });
+  });
+}
+
+function createSparkles() {
+  const container = document.getElementById('sparkles');
+  const emojis = ['✨', '💫', '⭐', '🌟', '💥', '🐾'];
+
+  for (let i = 0; i < 8; i++) {
+    const spark = document.createElement('div');
+    spark.className = 'sparkle';
+    spark.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+    spark.style.left = `${20 + Math.random() * 60}%`;
+    spark.style.top = `${20 + Math.random() * 60}%`;
+    spark.style.animationDelay = `${0.3 + Math.random() * 0.5}s`;
+    container.appendChild(spark);
+  }
+}
+
+function getPartEmoji(part) {
+  const map = {
+    'щёчка': '😊', 'ушко': '👂', 'носик': '👃', 'лобик': '🧠',
+    'пальчик': '👆', 'плечико': '💪', 'ручка': '🤚', 'коленка': '🦵',
+    'пяточка': '🦶', 'шейка': '🌙', 'губки': '💋', 'пузико': '😏',
+    'бочок': '🤗', 'попка': '🍑', 'ключица': '✨', 'мочка уха': '👂'
+  };
+  return map[part] || '🐾';
+}
+
+function showError() {
+  document.getElementById('loadingState').style.display = 'none';
+  document.getElementById('errorState').classList.add('show');
+}
+</script>
+</body>
+</html>
