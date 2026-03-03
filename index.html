@@ -50,6 +50,7 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
 .bite-center{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:80vh;text-align:center}
 .bite-scene{display:none;width:100%;max-width:380px;text-align:center}.bite-scene.show{display:block}
 .bite-gif{width:180px;height:180px;border-radius:20px;object-fit:cover;margin:0 auto 24px;display:block;animation:gifPop .5s ease both;box-shadow:0 8px 30px rgba(0,0,0,.4)}
+.bite-gif.wide{width:280px;height:auto;max-height:160px}
 @keyframes gifPop{0%{transform:scale(0);opacity:0}60%{transform:scale(1.1)}100%{transform:scale(1);opacity:1}}
 .bite-from{font-size:15px;color:var(--text2);margin-bottom:8px;animation:fadeInUp .5s ease .3s both}.bite-from strong{color:var(--accent);font-weight:800}
 .bite-phrase{font-size:22px;font-weight:900;line-height:1.4;margin-bottom:8px;animation:fadeInUp .5s ease .5s both}
@@ -234,6 +235,9 @@ show:function(b,id){
   document.getElementById('senderName').textContent=b.sender_name;
   document.getElementById('bitePhrase').textContent=b.phrase;
   document.getElementById('bitePart').textContent=getPartEmoji(b.body_part)+' '+b.body_part;
+  /* Swap media: video for bite, gif image for kiss */
+  var mediaEl=document.getElementById('biteGif');
+  if(k){var img=document.createElement('img');img.className='bite-gif wide';img.src='kiss.gif';img.alt='💋';mediaEl.parentNode.replaceChild(img,mediaEl);}
   if(k){document.documentElement.style.setProperty('--accent','#ff69b4');document.documentElement.style.setProperty('--accent2','#ff1493');document.documentElement.style.setProperty('--accent-glow','rgba(255,105,180,.3)');}
   else if(b.mode==='spicy'){document.documentElement.style.setProperty('--accent','#ff4757');document.documentElement.style.setProperty('--accent2','#ff6348');document.documentElement.style.setProperty('--accent-glow','rgba(255,71,87,.3)');}
   document.getElementById('biteScene').classList.add('show');
