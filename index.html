@@ -82,9 +82,18 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
 .bar-track{height:8px;background:var(--bg);border-radius:4px;overflow:hidden}
 .bar-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .8s}
 .ach-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.ach{background:var(--card);border-radius:12px;padding:12px 8px;text-align:center;opacity:.3;transition:all .3s}
+.ach{background:var(--card);border-radius:12px;padding:12px 8px;text-align:center;opacity:.3;transition:all .3s;cursor:pointer}
 .ach.unlocked{opacity:1;border:2px solid var(--accent);box-shadow:0 0 10px var(--accent-glow)}
 .ach-icon{font-size:24px;margin-bottom:2px}.ach-title{font-size:11px;font-weight:800;line-height:1.2}
+.ach-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;align-items:center;justify-content:center;padding:20px}
+.ach-overlay.show{display:flex}
+.ach-modal{background:var(--card);border-radius:20px;padding:28px 24px;text-align:center;max-width:300px;width:100%;animation:gifPop .3s ease both}
+.ach-modal .am-icon{font-size:48px;margin-bottom:8px}
+.ach-modal .am-title{font-size:18px;font-weight:900;margin-bottom:8px}
+.ach-modal .am-desc{font-size:14px;color:var(--text2);line-height:1.5;margin-bottom:4px}
+.ach-modal .am-status{font-size:13px;font-weight:800;margin-top:12px}
+.ach-modal .am-status.locked{color:var(--text2)}
+.ach-modal .am-status.done{color:#4ade80}
 .empty-state{text-align:center;padding:24px;color:var(--text2);font-size:14px}
 .stats-tab-content{display:none}.stats-tab-content.active{display:block}
 </style>
@@ -93,12 +102,22 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
 <div class="lock-screen" id="lockScreen"><div class="lock-icon">🔒</div><div class="lock-title">Откройте через Telegram</div><div class="lock-text">Бот работает только внутри Telegram.</div><a class="lock-link" href="https://t.me/KycbkaBot">Открыть бота 🐾</a></div>
 <div class="cooldown-overlay" id="cooldownOverlay"><div class="cooldown-timer" id="cooldownTimer">60</div><div class="cooldown-text">Подожди немного 🐾</div></div>
 
+<!-- Achievement popup modal -->
+<div class="ach-overlay" id="achOverlay" onclick="Stats.closeAch()">
+<div class="ach-modal" onclick="event.stopPropagation()">
+<div class="am-icon" id="achIcon"></div>
+<div class="am-title" id="achTitle"></div>
+<div class="am-desc" id="achDesc"></div>
+<div class="am-status" id="achStatus"></div>
+</div>
+</div>
+
 <!-- CREATE -->
 <div class="page" id="pageCreate"><div class="container">
 <div class="header"><div class="logo" id="createLogo">🐾</div><h1 id="createTitle">Кусьбот</h1></div>
 <div class="step active" id="step1"><div class="step-label">Шаг 1 из 3</div><div class="step-title" id="step1Title">Кого кусаем? 😼</div><input class="name-input" id="recipientName" type="text" placeholder="Имя получателя..." maxlength="64" autocomplete="off"><div class="preview-card" id="previewCard"><div class="preview-avatar" id="previewAvatar">?</div><div class="preview-text" id="previewText">Кусь полетит к <strong id="previewName">...</strong></div></div><button class="main-btn primary" id="nextStep1" disabled>Далее →</button></div>
 <div class="step" id="step2"><div class="back-row"><button class="back-btn" onclick="Create.goStep(1)">← Назад</button></div><div class="step-label">Шаг 2 из 3</div><div class="step-title" id="step2Title">Какой кусь? 🎭</div><div class="mode-grid"><div class="mode-btn" id="modeA" onclick="Create.selectMode('lite')"><div class="mode-icon" id="modeAIcon">🐾</div><div class="mode-name" id="modeAName">Лайт</div><div class="mode-desc" id="modeADesc">Милый и смешной</div></div><div class="mode-btn" id="modeB" onclick="Create.selectMode('spicy')"><div class="mode-icon" id="modeBIcon">🌶</div><div class="mode-name" id="modeBName">С перчинкой</div><div class="mode-desc" id="modeBDesc">Для особенных 😏</div></div></div><div style="height:16px"></div><button class="main-btn primary" id="nextStep2" disabled>Далее →</button></div>
-<div class="step" id="step3"><div class="back-row"><button class="back-btn" onclick="Create.goStep(2)">← Назад</button></div><div class="step-label">Шаг 3 из 3</div><div class="step-title" id="step3Title">Куда кусаем? 👀</div><div class="parts-grid" id="partsGrid"></div><button class="random-btn" onclick="Create.selectRandom()">🎲 Рандом!</button><button class="main-btn primary" id="biteBtn" disabled>🐾 Кусь!</button></div>
+<div class="step" id="step3"><div class="back-row"><button class="back-btn" onclick="Create.goStep(2)">← Назад</button></div><div class="step-label">Шаг 3 из 3</div><div class="step-title" id="step3Title">Куда кусаем? 👀</div><div class="parts-grid" id="partsGrid"></div><button class="random-btn" onclick="Create.sendRandom()">🎲 Рандом!</button><button class="main-btn primary" id="biteBtn" disabled>🐾 Кусь!</button></div>
 <div class="loading hidden" id="createLoading"><div class="spinner"></div><div style="color:var(--text2);font-weight:700">Создаём...</div></div>
 </div></div>
 
@@ -129,16 +148,21 @@ function escHtml(s){var d=document.createElement('div');d.textContent=s;return d
 function navigate(p){var pages=document.querySelectorAll('.page');for(var i=0;i<pages.length;i++)pages[i].classList.remove('active');var el=document.getElementById('page'+p.charAt(0).toUpperCase()+p.slice(1));if(el)el.classList.add('active');}
 
 document.addEventListener('DOMContentLoaded',function(){
-if(!tg||!tg.initDataUnsafe||!tg.initDataUnsafe.user){document.getElementById('lockScreen').classList.add('show');return;}
-tg.ready();tg.expand();tg.setHeaderColor('#0f0f1a');tg.setBackgroundColor('#0f0f1a');
-userId=tg.initDataUnsafe.user.id;userName=tg.initDataUnsafe.user.first_name||'Аноним';
-var p=new URLSearchParams(window.location.search),page=p.get('page')||'create';
-if(page==='bite'){navigate('bite');Bite.init(p);}else if(page==='stats'){navigate('stats');Stats.init();}else{navigate('create');Create.init(p);}
+  if(!tg||!tg.initDataUnsafe||!tg.initDataUnsafe.user){document.getElementById('lockScreen').classList.add('show');return;}
+  tg.ready();tg.expand();tg.setHeaderColor('#0f0f1a');tg.setBackgroundColor('#0f0f1a');
+  userId=tg.initDataUnsafe.user.id;userName=tg.initDataUnsafe.user.first_name||'Аноним';
+  var p=new URLSearchParams(window.location.search),page=p.get('page')||'create';
+  if(page==='bite'){navigate('bite');Bite.init(p);}
+  else if(page==='stats'){navigate('stats');Stats.init();}
+  else{navigate('create');Create.init(p);}
 });
 
-var Create={action:'bite',mode:null,part:null,rname:'',
+/* ===================== CREATE ===================== */
+var Create={action:'bite',mode:null,part:null,rname:'',replyTo:null,
 init:function(p){
-  Create.action=p.get('action')||'bite';Create.setupUI();
+  Create.action=p.get('action')||'bite';
+  Create.replyTo=p.get('reply')||null;
+  Create.setupUI();
   var rn=p.get('name'),rm=p.get('mode');
   if(rn){document.getElementById('recipientName').value=decodeURIComponent(rn);Create.updatePreview();if(rm){Create.selectMode(rm);Create.goStep(3);}else Create.goStep(2);}
   Create.checkLimit();
@@ -178,10 +202,11 @@ renderParts:function(){
   g.innerHTML=h;
 },
 selectPart:function(n){Create.part=n;Create.renderParts();document.getElementById('biteBtn').disabled=false;},
-selectRandom:function(){
-  var parts=Create.getParts();Create.selectPart(parts[Math.floor(Math.random()*parts.length)].n);
-  var btns=document.querySelectorAll('.part-btn'),i=0;
-  var iv=setInterval(function(){for(var j=0;j<btns.length;j++)btns[j].classList.remove('selected');if(btns[i])btns[i].classList.add('selected');i++;if(i>=btns.length){clearInterval(iv);Create.renderParts();}},50);
+sendRandom:function(){
+  if(!Create.mode||!Create.rname)return;
+  var parts=Create.getParts();
+  Create.part=parts[Math.floor(Math.random()*parts.length)].n;
+  Create.send();
 },
 checkLimit:function(){fetch(API+'/api/check-limit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:userId})}).then(function(r){return r.json();}).then(function(d){if(!d.ok&&d.remaining>0)Create.showCooldown(d.remaining);}).catch(function(){});},
 showCooldown:function(ms){var o=document.getElementById('cooldownOverlay');o.classList.add('show');var tick=function(){ms-=1000;if(ms<=0){o.classList.remove('show');return;}document.getElementById('cooldownTimer').textContent=Math.ceil(ms/1000);setTimeout(tick,1000);};document.getElementById('cooldownTimer').textContent=Math.ceil(ms/1000);setTimeout(tick,1000);},
@@ -190,13 +215,16 @@ send:function(){
   document.getElementById('biteBtn').disabled=true;
   var s=document.querySelectorAll('.step');for(var i=0;i<s.length;i++)s[i].classList.remove('active');
   document.getElementById('createLoading').classList.remove('hidden');
-  fetch(API+'/api/create',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sender_id:userId,sender_name:userName,recipient_name:Create.rname,body_part:Create.part,mode:Create.mode,type:Create.action})}).then(function(r){return r.json();}).then(function(d){
+  var payload={sender_id:userId,sender_name:userName,recipient_name:Create.rname,body_part:Create.part,mode:Create.mode,type:Create.action};
+  if(Create.replyTo)payload.reply_to=Create.replyTo;
+  fetch(API+'/api/create',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)}).then(function(r){return r.json();}).then(function(d){
     if(d.ok){if(tg.HapticFeedback)tg.HapticFeedback.notificationOccurred('success');setTimeout(function(){tg.close();},500);}
     else if(d.error==='cooldown'){document.getElementById('createLoading').classList.add('hidden');Create.showCooldown(d.remaining);Create.goStep(3);}
     else throw new Error(d.error);
   }).catch(function(){document.getElementById('createLoading').classList.add('hidden');Create.goStep(3);document.getElementById('biteBtn').disabled=false;tg.showAlert('Ошибка. Попробуй ещё раз!');});
 }};
 
+/* ===================== BITE VIEW ===================== */
 var Bite={
 init:function(p){var id=p.get('id');if(!id){Bite.err();return;}fetch(API+'/api/bite',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({bite_id:id})}).then(function(r){return r.json();}).then(function(d){if(!d.ok){Bite.err();return;}Bite.show(d.bite,id);}).catch(function(){Bite.err();});},
 show:function(b,id){
@@ -210,13 +238,35 @@ show:function(b,id){
   else if(b.mode==='spicy'){document.documentElement.style.setProperty('--accent','#ff4757');document.documentElement.style.setProperty('--accent2','#ff6348');document.documentElement.style.setProperty('--accent-glow','rgba(255,71,87,.3)');}
   document.getElementById('biteScene').classList.add('show');
   if(tg.HapticFeedback){tg.HapticFeedback.impactOccurred('heavy');setTimeout(function(){tg.HapticFeedback.notificationOccurred('success');},400);}
-  document.getElementById('replyRandomBtn').addEventListener('click',function(){var np=new URLSearchParams();np.set('page','create');np.set('action',b.type||'bite');np.set('reply',b.sender_id);np.set('mode',b.mode);np.set('name',b.sender_name);window.location.search=np.toString();});
-  document.getElementById('replyChooseBtn').addEventListener('click',function(){var np=new URLSearchParams();np.set('page','create');np.set('action',b.type||'bite');np.set('reply',b.sender_id);np.set('name',b.sender_name);window.location.search=np.toString();});
+
+  /* Reply random — instant send + direct delivery */
+  document.getElementById('replyRandomBtn').addEventListener('click',function(){
+    var bType=b.type||'bite',isKiss=bType==='kiss';
+    var allP=isKiss?(b.mode==='spicy'?KISS_SPICY:KISS_LITE):(b.mode==='spicy'?BITE_SPICY:BITE_LITE);
+    var rp=allP[Math.floor(Math.random()*allP.length)].n;
+    var btn=document.getElementById('replyRandomBtn');btn.disabled=true;btn.textContent='⏳...';
+    fetch(API+'/api/create',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+      sender_id:userId,sender_name:userName,recipient_name:b.sender_name,
+      body_part:rp,mode:b.mode,type:bType,reply_to:String(b.sender_id)
+    })}).then(function(r){return r.json();}).then(function(d){
+      if(d.ok){if(tg.HapticFeedback)tg.HapticFeedback.notificationOccurred('success');setTimeout(function(){tg.close();},500);}
+      else{tg.showAlert(d.error==='cooldown'?'Подожди немного!':'Ошибка');btn.disabled=false;btn.textContent='🎲 В ответ';}
+    }).catch(function(){tg.showAlert('Ошибка');btn.disabled=false;btn.textContent='🎲 В ответ';});
+  });
+
+  /* Reply choose — open create with reply_to for direct delivery */
+  document.getElementById('replyChooseBtn').addEventListener('click',function(){
+    var np=new URLSearchParams();np.set('page','create');np.set('action',b.type||'bite');
+    np.set('reply',b.sender_id);np.set('name',b.sender_name);
+    window.location.search=np.toString();
+  });
+
   document.getElementById('blockBtn').addEventListener('click',function(){tg.showConfirm('Заблокировать? Отправитель не узнает.',function(ok){if(!ok)return;fetch(API+'/api/block',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({blocker_id:userId,bite_id:id})}).then(function(){tg.showAlert('🚫 Заблокировано.');document.getElementById('blockBtn').textContent='✅ Заблокировано';document.getElementById('blockBtn').disabled=true;}).catch(function(){tg.showAlert('Ошибка.');});});});
 },
 err:function(){document.getElementById('biteLoading').style.display='none';document.getElementById('biteError').classList.add('show');}
 };
 
+/* ===================== STATS ===================== */
 var Stats={data:null,
 init:function(){fetch(API+'/api/stats',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:userId})}).then(function(r){return r.json();}).then(function(d){if(!d.ok)throw 0;Stats.data=d.stats;Stats.render();}).catch(function(){document.getElementById('statsLoading').innerHTML='<div style="font-size:48px;margin-bottom:12px">😿</div><div style="color:var(--text2);font-weight:700">Ошибка загрузки</div>';});},
 render:function(){document.getElementById('statsLoading').style.display='none';document.getElementById('statsContent').style.display='block';Stats.renderTab('bite',document.getElementById('statsBite'),Stats.data.bite);Stats.renderTab('kiss',document.getElementById('statsKiss'),Stats.data.kiss);},
@@ -231,7 +281,12 @@ renderTab:function(type,el,d){
   h+='<div class="section"><div class="section-title">👥 От кого больше всего</div>'+Stats.topHTML(d.topSenders)+'</div>';
   h+='<div class="section"><div class="section-title">🏅 Достижения</div><div class="ach-grid">';
   var allA=Stats.allAch(type),unlocked=d.achievements.map(function(a){return a.title;});
-  for(var i=0;i<allA.length;i++){var a=allA[i],u=unlocked.indexOf(a.title)>=0;h+='<div class="ach '+(u?'unlocked':'')+'"><div class="ach-icon">'+a.icon+'</div><div class="ach-title">'+a.title+'</div></div>';}
+  for(var i=0;i<allA.length;i++){
+    var a=allA[i],u=unlocked.indexOf(a.title)>=0;
+    var safeDesc=a.desc.replace(/'/g,"\\'");
+    var safeTitle=a.title.replace(/'/g,"\\'");
+    h+='<div class="ach '+(u?'unlocked':'')+'" onclick="Stats.showAch(\''+a.icon+'\',\''+safeTitle+'\',\''+safeDesc+'\','+(u?'true':'false')+')"><div class="ach-icon">'+a.icon+'</div><div class="ach-title">'+a.title+'</div></div>';
+  }
   h+='</div></div>';el.innerHTML=h;
 },
 topHTML:function(data){
@@ -241,9 +296,52 @@ topHTML:function(data){
   return h+'</div>';
 },
 allAch:function(type){
-  if(type==='bite')return[{icon:'🐣',title:'Первый кусь'},{icon:'🐾',title:'Кусака'},{icon:'🦷',title:'Зубастик'},{icon:'😈',title:'Кусь-маньяк'},{icon:'👑',title:'Кусь-легенда'},{icon:'🎯',title:'Дегустатор'},{icon:'🧠',title:'Анатом'},{icon:'🌶',title:'Гурман'},{icon:'👥',title:'Социальный кусака'},{icon:'🌍',title:'Кусь по миру'},{icon:'🌟',title:'Популярный(-ая)'},{icon:'🍑',title:'Попкусь'},{icon:'💋',title:'Губкусь'},{icon:'🧛',title:'Вампирчик'},{icon:'🔥',title:'Острый на язык'},{icon:'🎀',title:'Куснули!'},{icon:'🧲',title:'Магнит кусей'}];
-  return[{icon:'💕',title:'Первый поцелуй'},{icon:'😘',title:'Романтик'},{icon:'💖',title:'Казанова'},{icon:'❤️‍🔥',title:'Дон Жуан'},{icon:'👑',title:'Легенда любви'},{icon:'🎯',title:'Нежный(-ая)'},{icon:'💝',title:'Щедрый(-ая)'},{icon:'🌟',title:'Любимчик'},{icon:'💋',title:'Настоящий поцелуй'},{icon:'🌙',title:'Лунный(-ая)'},{icon:'🔥',title:'Страстный(-ая)'},{icon:'🎀',title:'Поцеловали!'},{icon:'🧲',title:'Магнит поцелуев'}];
+  if(type==='bite')return[
+    {icon:'🐣',title:'Первый кусь',desc:'Отправь свой первый кусь'},
+    {icon:'🐾',title:'Кусака',desc:'Отправь 10 кусей'},
+    {icon:'🦷',title:'Зубастик',desc:'Отправь 25 кусей'},
+    {icon:'😈',title:'Кусь-маньяк',desc:'Отправь 50 кусей'},
+    {icon:'👑',title:'Кусь-легенда',desc:'Отправь 100 кусей'},
+    {icon:'🎯',title:'Дегустатор',desc:'Кусни 5 разных частей тела'},
+    {icon:'🧠',title:'Анатом',desc:'Кусни все 9 лайт-частей'},
+    {icon:'🌶',title:'Гурман',desc:'Кусни все 16 частей тела'},
+    {icon:'👥',title:'Социальный кусака',desc:'Кусни 5 разных людей'},
+    {icon:'🌍',title:'Кусь по миру',desc:'Кусни 10 разных людей'},
+    {icon:'🌟',title:'Популярный(-ая)',desc:'Тебя куснули 5 разных людей'},
+    {icon:'🍑',title:'Попкусь',desc:'Кусни за попку'},
+    {icon:'💋',title:'Губкусь',desc:'Кусни за губки'},
+    {icon:'🧛',title:'Вампирчик',desc:'Кусни за шейку'},
+    {icon:'🔥',title:'Острый на язык',desc:'Отправь 10 кусей с перчинкой'},
+    {icon:'🎀',title:'Куснули!',desc:'Получи свой первый кусь'},
+    {icon:'🧲',title:'Магнит кусей',desc:'Получи 25 кусей'}
+  ];
+  return[
+    {icon:'💕',title:'Первый поцелуй',desc:'Отправь свой первый поцелуй'},
+    {icon:'😘',title:'Романтик',desc:'Отправь 10 поцелуев'},
+    {icon:'💖',title:'Казанова',desc:'Отправь 25 поцелуев'},
+    {icon:'❤️‍🔥',title:'Дон Жуан',desc:'Отправь 50 поцелуев'},
+    {icon:'👑',title:'Легенда любви',desc:'Отправь 100 поцелуев'},
+    {icon:'🎯',title:'Нежный(-ая)',desc:'Поцелуй 4 разных части тела'},
+    {icon:'💝',title:'Щедрый(-ая)',desc:'Поцелуй 5 разных людей'},
+    {icon:'🌟',title:'Любимчик',desc:'Тебя поцеловали 5 разных людей'},
+    {icon:'💋',title:'Настоящий поцелуй',desc:'Поцелуй в губки'},
+    {icon:'🌙',title:'Лунный(-ая)',desc:'Поцелуй в шейку'},
+    {icon:'🔥',title:'Страстный(-ая)',desc:'Отправь 10 страстных поцелуев'},
+    {icon:'🎀',title:'Поцеловали!',desc:'Получи свой первый поцелуй'},
+    {icon:'🧲',title:'Магнит поцелуев',desc:'Получи 25 поцелуев'}
+  ];
 },
+showAch:function(icon,title,desc,unlocked){
+  document.getElementById('achIcon').textContent=icon;
+  document.getElementById('achTitle').textContent=title;
+  document.getElementById('achDesc').textContent=desc;
+  var st=document.getElementById('achStatus');
+  if(unlocked){st.textContent='✅ Получено!';st.className='am-status done';}
+  else{st.textContent='🔒 Ещё не получено';st.className='am-status locked';}
+  document.getElementById('achOverlay').classList.add('show');
+  if(tg.HapticFeedback)tg.HapticFeedback.impactOccurred('light');
+},
+closeAch:function(){document.getElementById('achOverlay').classList.remove('show');},
 switchTab:function(tab){
   document.getElementById('tabBite').className='tab'+(tab==='bite'?' active':'');
   document.getElementById('tabKiss').className='tab'+(tab==='kiss'?' active':'');
