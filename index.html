@@ -96,6 +96,7 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
 .ach-modal .am-status.locked{color:var(--text2)}
 .ach-modal .am-status.done{color:#4ade80}
 .empty-state{text-align:center;padding:24px;color:var(--text2);font-size:14px}
+.escalation-hint{font-size:13px;color:var(--text2);text-align:center;margin-bottom:10px;font-style:italic}
 .stats-tab-content{display:none}.stats-tab-content.active{display:block}
 </style>
 </head>
@@ -125,7 +126,7 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
 <!-- BITE VIEW -->
 <div class="page" id="pageBite"><div class="container"><div class="bite-center">
 <div class="loading" id="biteLoading"><div class="spinner"></div><div style="color:var(--text2);font-weight:700">Загружаем...</div></div>
-<div class="bite-scene" id="biteScene"><video class="bite-gif" id="biteGif" src="bite.mp4" autoplay loop muted playsinline></video><div class="bite-from"><span id="biteAction">Кусь</span> от <strong id="senderName">...</strong></div><div class="bite-phrase" id="bitePhrase">...</div><div class="bite-part"><span id="bitePart">...</span></div><div class="actions"><div class="action-row"><button class="action-btn reply-random" id="replyRandomBtn">🎲 В ответ</button><button class="action-btn reply-choose" id="replyChooseBtn">✨ Выбрать</button></div><button class="action-btn block-btn" id="blockBtn">🚫 Заблокировать</button></div></div>
+<div class="bite-scene" id="biteScene"><video class="bite-gif" id="biteGif" src="bite.mp4" autoplay loop muted playsinline></video><div class="bite-from"><span id="biteAction">Кусь</span> от <strong id="senderName">...</strong></div><div class="bite-phrase" id="bitePhrase">...</div><div class="bite-part"><span id="bitePart">...</span></div><div class="actions"><div class="escalation-hint" id="escalationHint"></div><div class="action-row"><button class="action-btn reply-random" id="replyRandomBtn">🎲 В ответ</button><button class="action-btn reply-choose" id="replyChooseBtn">✨ Выбрать</button></div><button class="action-btn block-btn" id="blockBtn">🚫 Заблокировать</button></div></div>
 <div class="error-state" id="biteError"><div class="error-emoji">😿</div><div class="error-text">Не найдено</div></div>
 </div></div></div>
 
@@ -144,7 +145,11 @@ var BITE_SPICY=BITE_LITE.concat([{n:'шейка',e:'🌙'},{n:'губки',e:'�
 var KISS_LITE=[{n:'щёчка',e:'😊'},{n:'лобик',e:'🧠'},{n:'носик',e:'👃'},{n:'ручка',e:'🤚'},{n:'плечико',e:'💪'},{n:'макушка',e:'👑'}];
 var KISS_SPICY=KISS_LITE.concat([{n:'губки',e:'💋'},{n:'шейка',e:'🌙'},{n:'ключица',e:'✨'},{n:'мочка уха',e:'👂'},{n:'пальчик',e:'👆'},{n:'ушко',e:'👂'},{n:'коленка',e:'🦵'},{n:'пяточка',e:'🦶'},{n:'пузико',e:'😏'},{n:'бочок',e:'🤗'},{n:'попка',e:'🍑'}]);
 
-function getPartEmoji(p){var a=BITE_SPICY.concat(KISS_SPICY);for(var i=0;i<a.length;i++)if(a[i].n===p)return a[i].e;return'🐾';}
+/* Rare parts — only via random (8% chance) */
+var BITE_RARE=[{n:'кончик носа',e:'🐽'},{n:'между лопаток',e:'🦋'},{n:'ямочка на щеке',e:'😊'},{n:'за ушком',e:'🌀'},{n:'переносица',e:'👃'},{n:'внутр. запястье',e:'💫'},{n:'ключичная ямка',e:'🌟'},{n:'сгиб локтя',e:'💪'}];
+var KISS_RARE=[{n:'кончик носа',e:'🐽'},{n:'ямочка на щеке',e:'😊'},{n:'за ушком',e:'🌀'},{n:'уголок губ',e:'💕'},{n:'висок',e:'🌙'},{n:'внутр. запястье',e:'💫'},{n:'кончик пальца',e:'✨'},{n:'веко',e:'😌'}];
+
+function getPartEmoji(p){var a=BITE_SPICY.concat(KISS_SPICY).concat(BITE_RARE).concat(KISS_RARE);for(var i=0;i<a.length;i++)if(a[i].n===p)return a[i].e;return'🐾';}
 function escHtml(s){var d=document.createElement('div');d.textContent=s;return d.innerHTML;}
 function navigate(p){var pages=document.querySelectorAll('.page');for(var i=0;i<pages.length;i++)pages[i].classList.remove('active');var el=document.getElementById('page'+p.charAt(0).toUpperCase()+p.slice(1));if(el)el.classList.add('active');}
 
@@ -208,7 +213,9 @@ selectPart:function(n){Create.part=n;Create.renderParts();document.getElementByI
 sendRandom:function(){
   if(!Create.mode||!Create.rname)return;
   var parts=Create.getParts();
-  Create.part=parts[Math.floor(Math.random()*parts.length)].n;
+  var rare=Create.action==='kiss'?KISS_RARE:BITE_RARE;
+  if(Math.random()<0.08){Create.part=rare[Math.floor(Math.random()*rare.length)].n;}
+  else{Create.part=parts[Math.floor(Math.random()*parts.length)].n;}
   Create.send();
 },
 checkLimit:function(){fetch(API+'/api/check-limit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:userId})}).then(function(r){return r.json();}).then(function(d){if(!d.ok&&d.remaining>0)Create.showCooldown(d.remaining);}).catch(function(){});},
@@ -243,13 +250,20 @@ show:function(b,id){
   if(k){document.documentElement.style.setProperty('--accent','#ff69b4');document.documentElement.style.setProperty('--accent2','#ff1493');document.documentElement.style.setProperty('--accent-glow','rgba(255,105,180,.3)');}
   else if(b.mode==='spicy'){document.documentElement.style.setProperty('--accent','#ff4757');document.documentElement.style.setProperty('--accent2','#ff6348');document.documentElement.style.setProperty('--accent-glow','rgba(255,71,87,.3)');}
   document.getElementById('biteScene').classList.add('show');
+  /* Escalation hint */
+  var hints={'щёчка':'Щёчка? Можно и посерьёзнее 😏','лобик':'Лобик — мило, но шейка ближе...','носик':'Носик? А как насчёт губок? 💋','ушко':'Ушко — неплохо, но за ушком ещё лучше...','ручка':'Ручка — нежно! А пальчики? ✨','плечико':'Плечико — а ключица рядом...','макушка':'Макушка? Дальше только лобик 😇'};
+  var hint=hints[b.body_part]||'';
+  if(hint)document.getElementById('escalationHint').textContent=hint;
   if(tg.HapticFeedback){tg.HapticFeedback.impactOccurred('heavy');setTimeout(function(){tg.HapticFeedback.notificationOccurred('success');},400);}
 
-  /* Reply random — instant send + direct delivery */
+  /* Reply random — instant send + direct delivery + rare chance */
   document.getElementById('replyRandomBtn').addEventListener('click',function(){
     var bType=b.type||'bite',isKiss=bType==='kiss';
     var allP=isKiss?(b.mode==='spicy'?KISS_SPICY:KISS_LITE):(b.mode==='spicy'?BITE_SPICY:BITE_LITE);
-    var rp=allP[Math.floor(Math.random()*allP.length)].n;
+    var rare=isKiss?KISS_RARE:BITE_RARE;
+    var rp;
+    if(Math.random()<0.08){rp=rare[Math.floor(Math.random()*rare.length)].n;}
+    else{rp=allP[Math.floor(Math.random()*allP.length)].n;}
     var btn=document.getElementById('replyRandomBtn');btn.disabled=true;btn.textContent='⏳...';
     fetch(API+'/api/create',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
       sender_id:userId,sender_name:userName,recipient_name:b.sender_name,
@@ -319,7 +333,8 @@ allAch:function(type){
     {icon:'🧛',title:'Вампирчик',desc:'Кусни за шейку'},
     {icon:'🔥',title:'Острый на язык',desc:'Отправь 10 кусей с перчинкой'},
     {icon:'🎀',title:'Куснули!',desc:'Получи свой первый кусь'},
-    {icon:'🧲',title:'Магнит кусей',desc:'Получи 25 кусей'}
+    {icon:'🧲',title:'Магнит кусей',desc:'Получи 25 кусей'},
+    {icon:'🦄',title:'Редкий кусь',desc:'Поймай редкую часть тела через рандом'}
   ];
   return[
     {icon:'💕',title:'Первый поцелуй',desc:'Отправь свой первый поцелуй'},
@@ -334,7 +349,8 @@ allAch:function(type){
     {icon:'🌙',title:'Лунный(-ая)',desc:'Поцелуй в шейку'},
     {icon:'🔥',title:'Страстный(-ая)',desc:'Отправь 10 страстных поцелуев'},
     {icon:'🎀',title:'Поцеловали!',desc:'Получи свой первый поцелуй'},
-    {icon:'🧲',title:'Магнит поцелуев',desc:'Получи 25 поцелуев'}
+    {icon:'🧲',title:'Магнит поцелуев',desc:'Получи 25 поцелуев'},
+    {icon:'🦄',title:'Редкий поцелуй',desc:'Поймай редкую часть тела через рандом'}
   ];
 },
 showAch:function(icon,title,desc,unlocked){
