@@ -142,7 +142,7 @@ var API='https://bite-bot.lisofoxa.workers.dev',tg=window.Telegram&&window.Teleg
 var BITE_LITE=[{n:'щёчка',e:'😊'},{n:'ушко',e:'👂'},{n:'носик',e:'👃'},{n:'лобик',e:'🧠'},{n:'пальчик',e:'👆'},{n:'плечико',e:'💪'},{n:'ручка',e:'🤚'},{n:'коленка',e:'🦵'},{n:'пяточка',e:'🦶'}];
 var BITE_SPICY=BITE_LITE.concat([{n:'шейка',e:'🌙'},{n:'губки',e:'💋'},{n:'пузико',e:'😏'},{n:'бочок',e:'🤗'},{n:'попка',e:'🍑'},{n:'ключица',e:'✨'},{n:'мочка уха',e:'👂'}]);
 var KISS_LITE=[{n:'щёчка',e:'😊'},{n:'лобик',e:'🧠'},{n:'носик',e:'👃'},{n:'ручка',e:'🤚'},{n:'плечико',e:'💪'},{n:'макушка',e:'👑'}];
-var KISS_SPICY=KISS_LITE.concat([{n:'губки',e:'💋'},{n:'шейка',e:'🌙'},{n:'ключица',e:'✨'},{n:'мочка уха',e:'👂'},{n:'пальчик',e:'👆'}]);
+var KISS_SPICY=KISS_LITE.concat([{n:'губки',e:'💋'},{n:'шейка',e:'🌙'},{n:'ключица',e:'✨'},{n:'мочка уха',e:'👂'},{n:'пальчик',e:'👆'},{n:'ушко',e:'👂'},{n:'коленка',e:'🦵'},{n:'пяточка',e:'🦶'},{n:'пузико',e:'😏'},{n:'бочок',e:'🤗'},{n:'попка',e:'🍑'}]);
 
 function getPartEmoji(p){var a=BITE_SPICY.concat(KISS_SPICY);for(var i=0;i<a.length;i++)if(a[i].n===p)return a[i].e;return'🐾';}
 function escHtml(s){var d=document.createElement('div');d.textContent=s;return d.innerHTML;}
