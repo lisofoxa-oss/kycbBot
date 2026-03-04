@@ -151,7 +151,9 @@ function navigate(p){var pages=document.querySelectorAll('.page');for(var i=0;i<
 document.addEventListener('DOMContentLoaded',function(){
   if(!tg||!tg.initDataUnsafe||!tg.initDataUnsafe.user){document.getElementById('lockScreen').classList.add('show');return;}
   tg.ready();tg.expand();tg.setHeaderColor('#0f0f1a');tg.setBackgroundColor('#0f0f1a');
-  userId=tg.initDataUnsafe.user.id;userName=tg.initDataUnsafe.user.first_name||'Аноним';
+  userId=tg.initDataUnsafe.user.id;
+  var fn=tg.initDataUnsafe.user.first_name||'Аноним',ln=tg.initDataUnsafe.user.last_name||'';
+  userName=ln?fn+' '+ln:fn;
   var p=new URLSearchParams(window.location.search),page=p.get('page')||'create';
   if(page==='bite'){navigate('bite');Bite.init(p);}
   else if(page==='stats'){navigate('stats');Stats.init();}
